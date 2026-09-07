@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# whatsapp session storage & local media
+.whatsapp_sessions
+.media_storage/
+.agents/
+*.docx
+
