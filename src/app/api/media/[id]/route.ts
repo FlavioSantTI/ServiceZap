@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    if (!id) {
+    if (!id || typeof id !== 'string' || !/^[a-zA-Z0-9_\-\.]+$/.test(id)) {
       return new NextResponse('ID de mídia inválido', { status: 400 });
     }
 
@@ -29,6 +29,7 @@ export async function GET(
           status: 416,
           headers: {
             'Content-Range': `bytes */${totalSize}`,
+            'X-Content-Type-Options': 'nosniff',
           },
         });
       }
@@ -43,6 +44,7 @@ export async function GET(
           'Accept-Ranges': 'bytes',
           'Content-Disposition': `inline; filename="${encodeURIComponent(media.fileName)}"`,
           'Cache-Control': 'public, max-age=31536000, immutable',
+          'X-Content-Type-Options': 'nosniff',
         },
       });
     }
@@ -55,6 +57,7 @@ export async function GET(
         'Content-Disposition': `inline; filename="${encodeURIComponent(media.fileName)}"`,
         'Cache-Control': 'public, max-age=31536000, immutable',
         'Accept-Ranges': 'bytes',
+        'X-Content-Type-Options': 'nosniff',
       },
     });
   } catch (error) {

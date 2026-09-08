@@ -72,24 +72,37 @@ export async function saveMediaBuffer(
 }
 
 /**
- * Recupera um arquivo de mídia e seus metadados do disco
+ * Recupera um arquivo de mídia e seus metadados do disco (Protegido contra Path Traversal)
  */
 export function getMediaFile(fileId: string): {
   buffer: Buffer;
   mimeType: string;
   fileName: string;
 } | null {
-  const dir = ensureMediaDir();
-  const filePath = path.join(dir, fileId);
-  const metaPath = path.join(dir, `${fileId}.json`);
-
-  if (!fs.existsSync(filePath)) {
+  if (!fileId || typeof fileId !== 'string') {
     return null;
   }
 
+  // 1. Extrai estritamente o basename para eliminar qualquer subida de diretório ('../' ou '..\')
+  const safeFileId = path.basename(fileId).trim();
+
+  // 2. Valida caracteres seguros (apenas alfanuméricos, underlines, hífens e pontos)
+  if (!/^[a-zA-Z0-9_\-\.]+$/.test(safeFileId)) {
+    return null;
+  }
+
+  const dir = ensureMediaDir();
+  const filePath = path.join(dir, safeFileId);
+
+  // 3. Garante que o caminho final resolvido reside estritamente dentro de MEDIA_DIR
+  if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) {
+    return null;
+  }
+
+  const metaPath = path.join(dir, `${safeFileId}.json`);
   const buffer = fs.readFileSync(filePath);
   let mimeType = 'application/octet-stream';
-  let fileName = fileId;
+  let fileName = safeFileId;
 
   if (fs.existsSync(metaPath)) {
     try {

@@ -6,9 +6,15 @@ import { WorkOrderDocument, WorkOrderStatus, WorkOrderType, WorkOrderItem } from
 import { mockWorkOrders } from '@/lib/mock-data';
 import { createInvoiceAction } from './invoices';
 import { revalidatePath } from 'next/cache';
+import { getCurrentUserAction } from '@/app/actions/auth';
 
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID || 'servicezap_db';
 const COLLECTION_WORK_ORDERS = process.env.APPWRITE_COLLECTION_WORK_ORDERS || 'work_orders';
+
+function sanitizeStr(val?: string, maxLen = 255): string {
+  if (!val || typeof val !== 'string') return '';
+  return val.trim().substring(0, maxLen);
+}
 
 export async function fetchWorkOrdersAction(): Promise<Partial<WorkOrderDocument>[]> {
   try {
@@ -16,11 +22,18 @@ export async function fetchWorkOrdersAction(): Promise<Partial<WorkOrderDocument
       return mockWorkOrders;
     }
 
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     const { databases } = await createAdminClient();
     const response = await databases.listDocuments(
       DATABASE_ID,
       COLLECTION_WORK_ORDERS,
-      [Query.orderDesc('$createdAt'), Query.limit(100)]
+      [
+        Query.equal('tenantId', tenantId),
+        Query.orderDesc('$createdAt'),
+        Query.limit(100),
+      ]
     );
 
     if (response.documents.length === 0) {
@@ -51,30 +64,37 @@ export async function createWorkOrderAction(data: {
   notes?: string;
 }): Promise<{ success: boolean; data?: Partial<WorkOrderDocument>; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     const prefix = data.type === 'quote' ? 'ORC' : 'OS';
     const number = `${prefix}-2026-${Math.floor(Math.random() * 900 + 100)}`;
     const itemsJsonString = data.itemsJson || (data.items ? JSON.stringify(data.items) : '');
+
+    const cleanData = {
+      type: data.type,
+      clientId: sanitizeStr(data.clientId, 50),
+      clientName: sanitizeStr(data.clientName, 100),
+      clientPhone: sanitizeStr(data.clientPhone, 30),
+      clientEmail: sanitizeStr(data.clientEmail, 120),
+      serviceId: sanitizeStr(data.serviceId, 50),
+      serviceName: sanitizeStr(data.serviceName, 150),
+      itemsJson: itemsJsonString,
+      amount: Math.max(0, Number(data.amount) || 0),
+      discount: Math.max(0, Number(data.discount) || 0),
+      dueDate: sanitizeStr(data.dueDate, 30),
+      executionDate: sanitizeStr(data.executionDate, 30),
+      notes: sanitizeStr(data.notes, 2000),
+    };
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       const mockCreated: Partial<WorkOrderDocument> = {
         $id: `wo_${Math.floor(Math.random() * 900 + 100)}`,
         $createdAt: new Date().toISOString(),
-        tenantId: 'tenant_01',
-        type: data.type,
+        tenantId,
         number,
-        clientId: data.clientId,
-        clientName: data.clientName,
-        clientPhone: data.clientPhone,
-        clientEmail: data.clientEmail,
-        serviceId: data.serviceId,
-        serviceName: data.serviceName,
-        itemsJson: itemsJsonString,
-        amount: data.amount,
-        discount: data.discount || 0,
-        status: data.type === 'quote' ? 'quote_sent' : 'approved',
-        dueDate: data.dueDate,
-        executionDate: data.executionDate,
-        notes: data.notes,
+        status: cleanData.type === 'quote' ? 'quote_sent' : 'approved',
+        ...cleanData,
       };
 
       revalidatePath('/dashboard');
@@ -88,22 +108,10 @@ export async function createWorkOrderAction(data: {
       COLLECTION_WORK_ORDERS,
       ID.unique(),
       {
-        tenantId: 'tenant_01',
-        type: data.type,
+        tenantId,
         number,
-        clientId: data.clientId,
-        clientName: data.clientName,
-        clientPhone: data.clientPhone || '',
-        clientEmail: data.clientEmail || '',
-        serviceId: data.serviceId || '',
-        serviceName: data.serviceName,
-        itemsJson: itemsJsonString,
-        amount: data.amount,
-        discount: data.discount || 0,
-        status: data.type === 'quote' ? 'quote_sent' : 'approved',
-        dueDate: data.dueDate || '',
-        executionDate: data.executionDate || '',
-        notes: data.notes || '',
+        status: cleanData.type === 'quote' ? 'quote_sent' : 'approved',
+        ...cleanData,
       }
     );
 
@@ -138,6 +146,9 @@ export async function updateWorkOrderAction(
   }>
 ): Promise<{ success: boolean; data?: Partial<WorkOrderDocument>; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     const itemsJsonString = data.itemsJson || (data.items ? JSON.stringify(data.items) : undefined);
 
     const updatePayload: any = { ...data };
@@ -145,6 +156,12 @@ export async function updateWorkOrderAction(
       updatePayload.itemsJson = itemsJsonString;
     }
     delete updatePayload.items;
+
+    if (data.clientName !== undefined) updatePayload.clientName = sanitizeStr(data.clientName, 100);
+    if (data.serviceName !== undefined) updatePayload.serviceName = sanitizeStr(data.serviceName, 150);
+    if (data.notes !== undefined) updatePayload.notes = sanitizeStr(data.notes, 2000);
+    if (data.amount !== undefined) updatePayload.amount = Math.max(0, Number(data.amount) || 0);
+    if (data.discount !== undefined) updatePayload.discount = Math.max(0, Number(data.discount) || 0);
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       revalidatePath('/dashboard');
@@ -155,6 +172,11 @@ export async function updateWorkOrderAction(
     const { databases } = await createAdminClient();
     let document;
     try {
+      const existing = await databases.getDocument(DATABASE_ID, COLLECTION_WORK_ORDERS, id);
+      if (existing.tenantId && existing.tenantId !== tenantId && session?.role !== 'super_admin') {
+        return { success: false, error: 'Acesso negado a esta Ordem de Serviço' };
+      }
+
       document = await databases.updateDocument(
         DATABASE_ID,
         COLLECTION_WORK_ORDERS,
@@ -185,6 +207,9 @@ export async function updateWorkOrderStatusAction(
   type?: WorkOrderType
 ): Promise<{ success: boolean; data?: Partial<WorkOrderDocument>; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       revalidatePath('/dashboard');
       revalidatePath('/dashboard/work-orders');
@@ -197,6 +222,11 @@ export async function updateWorkOrderStatusAction(
 
     let document;
     try {
+      const existing = await databases.getDocument(DATABASE_ID, COLLECTION_WORK_ORDERS, id);
+      if (existing.tenantId && existing.tenantId !== tenantId && session?.role !== 'super_admin') {
+        return { success: false, error: 'Acesso negado a esta Ordem de Serviço' };
+      }
+
       document = await databases.updateDocument(
         DATABASE_ID,
         COLLECTION_WORK_ORDERS,
@@ -230,10 +260,10 @@ export async function convertWorkOrderToInvoiceAction(
 ): Promise<{ success: boolean; invoiceId?: string; error?: string }> {
   try {
     const invoiceRes = await createInvoiceAction({
-      clientName: workOrderData.clientName,
-      amount: workOrderData.amount,
+      clientName: sanitizeStr(workOrderData.clientName, 100),
+      amount: Math.max(0, Number(workOrderData.amount) || 0),
       dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
-      description: `Fatura referente à O.S.: ${workOrderData.serviceName}`,
+      description: `Fatura referente à O.S.: ${sanitizeStr(workOrderData.serviceName, 150)}`,
       issueNfe: false,
     });
 
@@ -261,6 +291,9 @@ export async function deleteWorkOrderAction(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       revalidatePath('/dashboard');
       revalidatePath('/dashboard/work-orders');
@@ -269,6 +302,11 @@ export async function deleteWorkOrderAction(
 
     const { databases } = await createAdminClient();
     try {
+      const existing = await databases.getDocument(DATABASE_ID, COLLECTION_WORK_ORDERS, id);
+      if (existing.tenantId && existing.tenantId !== tenantId && session?.role !== 'super_admin') {
+        return { success: false, error: 'Acesso negado a esta Ordem de Serviço' };
+      }
+
       await databases.deleteDocument(DATABASE_ID, COLLECTION_WORK_ORDERS, id);
     } catch (err: any) {
       if (err.code === 404 || err.type === 'document_not_found') {

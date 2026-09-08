@@ -5,9 +5,15 @@ import { Query, ID } from 'node-appwrite';
 import { InvoiceDocument, InvoiceStatus, NfeStatus } from '@/types/appwrite';
 import { mockInvoices } from '@/lib/mock-data';
 import { revalidatePath } from 'next/cache';
+import { getCurrentUserAction } from '@/app/actions/auth';
 
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID || 'servicezap_db';
 const COLLECTION_INVOICES = process.env.APPWRITE_COLLECTION_INVOICES || 'invoices';
+
+function sanitizeStr(val?: string, maxLen = 255): string {
+  if (!val || typeof val !== 'string') return '';
+  return val.trim().substring(0, maxLen);
+}
 
 export async function fetchInvoicesAction(): Promise<Partial<InvoiceDocument>[]> {
   try {
@@ -15,11 +21,18 @@ export async function fetchInvoicesAction(): Promise<Partial<InvoiceDocument>[]>
       return mockInvoices;
     }
 
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     const { databases } = await createAdminClient();
     const response = await databases.listDocuments(
       DATABASE_ID,
       COLLECTION_INVOICES,
-      [Query.orderDesc('$createdAt'), Query.limit(100)]
+      [
+        Query.equal('tenantId', tenantId),
+        Query.orderDesc('$createdAt'),
+        Query.limit(100),
+      ]
     );
 
     if (response.documents.length === 0) {
@@ -41,21 +54,29 @@ export async function createInvoiceAction(data: {
   issueNfe?: boolean;
 }): Promise<{ success: boolean; data?: Partial<InvoiceDocument>; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
+    const cleanAmount = Math.max(0, Number(data.amount) || 0);
+    const cleanClientName = sanitizeStr(data.clientName, 100);
+    const cleanDueDate = sanitizeStr(data.dueDate, 30);
+    const cleanDesc = sanitizeStr(data.description, 1000) || 'Cobrança Gerada no ServiceZap';
+
     const pixCopyPaste = '00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-4266141740005204000053039865405' +
-      data.amount.toFixed(2) + '5802BR5913ServiceZap6008SAO PAULO62070503***6304E8A2';
+      cleanAmount.toFixed(2) + '5802BR5913ServiceZap6008SAO PAULO62070503***6304E8A2';
     const pixQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCopyPaste)}`;
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       const mockCreated: Partial<InvoiceDocument> = {
         $id: `inv_${Math.floor(Math.random() * 900 + 100)}`,
         $createdAt: new Date().toISOString(),
-        tenantId: 'tenant_01',
+        tenantId,
         clientId: 'cli_01',
-        clientName: data.clientName,
-        amount: data.amount,
-        dueDate: data.dueDate,
+        clientName: cleanClientName,
+        amount: cleanAmount,
+        dueDate: cleanDueDate,
         status: 'pending' as InvoiceStatus,
-        description: data.description || 'Cobrança Gerada no ServiceZap',
+        description: cleanDesc,
         nfeStatus: (data.issueNfe ? 'processing' : 'none') as NfeStatus,
         pixQrCodeUrl,
         pixCopyPaste,
@@ -72,13 +93,13 @@ export async function createInvoiceAction(data: {
       COLLECTION_INVOICES,
       ID.unique(),
       {
-        tenantId: 'tenant_01',
+        tenantId,
         clientId: 'cli_01',
-        clientName: data.clientName,
-        amount: data.amount,
-        dueDate: data.dueDate,
+        clientName: cleanClientName,
+        amount: cleanAmount,
+        dueDate: cleanDueDate,
         status: 'pending',
-        description: data.description || 'Cobrança Gerada no ServiceZap',
+        description: cleanDesc,
         nfeStatus: data.issueNfe ? 'processing' : 'none',
         pixQrCodeUrl,
         pixCopyPaste,
@@ -100,6 +121,9 @@ export async function updateInvoiceStatusAction(
   nfeStatus?: NfeStatus
 ): Promise<{ success: boolean; data?: Partial<InvoiceDocument>; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       revalidatePath('/dashboard');
       revalidatePath('/dashboard/invoices');
@@ -112,6 +136,11 @@ export async function updateInvoiceStatusAction(
 
     let document;
     try {
+      const existing = await databases.getDocument(DATABASE_ID, COLLECTION_INVOICES, invoiceId);
+      if (existing.tenantId && existing.tenantId !== tenantId && session?.role !== 'super_admin') {
+        return { success: false, error: 'Acesso negado a esta fatura' };
+      }
+
       document = await databases.updateDocument(
         DATABASE_ID,
         COLLECTION_INVOICES,
@@ -139,6 +168,9 @@ export async function deleteInvoiceAction(
   invoiceId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const session = await getCurrentUserAction();
+    const tenantId = session?.tenantId || 'tenant_01';
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       revalidatePath('/dashboard');
       revalidatePath('/dashboard/invoices');
@@ -147,6 +179,11 @@ export async function deleteInvoiceAction(
 
     const { databases } = await createAdminClient();
     try {
+      const existing = await databases.getDocument(DATABASE_ID, COLLECTION_INVOICES, invoiceId);
+      if (existing.tenantId && existing.tenantId !== tenantId && session?.role !== 'super_admin') {
+        return { success: false, error: 'Acesso negado a esta fatura' };
+      }
+
       await databases.deleteDocument(DATABASE_ID, COLLECTION_INVOICES, invoiceId);
     } catch (err: any) {
       if (err.code === 404 || err.type === 'document_not_found') {
