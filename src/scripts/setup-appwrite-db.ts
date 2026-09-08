@@ -1,4 +1,4 @@
-import { Client, Databases, DatabasesIndexType } from 'node-appwrite';
+import { Client, Databases, DatabasesIndexType, ID } from 'node-appwrite';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -156,6 +156,7 @@ async function setupDatabase() {
   await ensureCollection('quick_replies', 'Respostas Rápidas');
   await ensureCollection('labels', 'Etiquetas e Rótulos');
   await ensureCollection('whatsapp_instances', 'Instâncias WhatsApp');
+  await ensureCollection('saas_plans', 'Planos SaaS');
 
   console.log('📐 Configurando Atributos e Índices das Coleções...');
 
@@ -329,6 +330,18 @@ async function setupDatabase() {
   await createStringAttributeIfNotExists('whatsapp_instances', 'phone', 30);
   await createStringAttributeIfNotExists('whatsapp_instances', 'updatedAt', 50);
   await createIndexIfNotExists('whatsapp_instances', 'idx_wa_tenant', DatabasesIndexType.Key, ['tenantId']);
+
+  // 14. Atributos da Coleção: saas_plans
+  await createStringAttributeIfNotExists('saas_plans', 'planId', 50, true);
+  await createStringAttributeIfNotExists('saas_plans', 'name', 100, true);
+  await createStringAttributeIfNotExists('saas_plans', 'badge', 50);
+  await createStringAttributeIfNotExists('saas_plans', 'description', 500);
+  await createBooleanAttributeIfNotExists('saas_plans', 'popular', false, false);
+  await createFloatAttributeIfNotExists('saas_plans', 'priceMonthly', true);
+  await createFloatAttributeIfNotExists('saas_plans', 'priceYearly', false);
+  await createStringAttributeIfNotExists('saas_plans', 'limitsJson', 1000);
+  await createStringAttributeIfNotExists('saas_plans', 'featuresJson', 1000);
+  await createStringAttributeIfNotExists('saas_plans', 'featureListJson', 1500);
 
   console.log('✨ Configuração completa de Banco, Coleções, Atributos e Índices finalizada!');
 }
