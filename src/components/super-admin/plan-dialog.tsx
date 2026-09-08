@@ -34,8 +34,8 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
     badge: '',
     description: '',
     popular: false,
-    priceMonthly: 99.9,
-    priceYearly: 990.0,
+    priceMonthly: '99.90',
+    priceYearly: '990.00',
     maxUsers: 5,
     maxAppointmentsPerMonth: 0, // 0 = ilimitado
     maxWorkOrdersPerMonth: 0,
@@ -65,8 +65,8 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
         badge: plan.badge || '',
         description: plan.description,
         popular: !!plan.popular,
-        priceMonthly: plan.priceMonthly,
-        priceYearly: plan.priceYearly,
+        priceMonthly: String(plan.priceMonthly ?? '0'),
+        priceYearly: String(plan.priceYearly ?? '0'),
         maxUsers: plan.limits.maxUsers === Infinity ? 0 : plan.limits.maxUsers,
         maxAppointmentsPerMonth: plan.limits.maxAppointmentsPerMonth === Infinity ? 0 : plan.limits.maxAppointmentsPerMonth,
         maxWorkOrdersPerMonth: plan.limits.maxWorkOrdersPerMonth === Infinity ? 0 : plan.limits.maxWorkOrdersPerMonth,
@@ -88,8 +88,8 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
         badge: '',
         description: '',
         popular: false,
-        priceMonthly: 49.9,
-        priceYearly: 490.0,
+        priceMonthly: '49.90',
+        priceYearly: '490.00',
         maxUsers: 3,
         maxAppointmentsPerMonth: 0,
         maxWorkOrdersPerMonth: 0,
@@ -128,6 +128,13 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
     }));
   };
 
+  const parseMoney = (val: string | number) => {
+    if (typeof val === 'number') return val;
+    const cleaned = String(val || '0').replace(/\s/g, '').replace(',', '.');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -148,8 +155,8 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
         badge: formData.badge,
         description: formData.description,
         popular: formData.popular,
-        priceMonthly: Number(formData.priceMonthly),
-        priceYearly: Number(formData.priceYearly),
+        priceMonthly: parseMoney(formData.priceMonthly),
+        priceYearly: parseMoney(formData.priceYearly),
         limits: {
           maxUsers: formData.maxUsers === 0 ? Infinity : Number(formData.maxUsers),
           maxAppointmentsPerMonth: formData.maxAppointmentsPerMonth === 0 ? Infinity : Number(formData.maxAppointmentsPerMonth),
@@ -185,7 +192,7 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-[#FAF6F2] border-[#DECDBB] text-[#2B2B2B] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl bg-[#FAF6F2] border-[#DECDBB] text-[#2B2B2B] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold text-[#2B2B2B]">
             <Crown className="h-5 w-5 text-[#E8622C]" />
@@ -245,24 +252,22 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-[#444444]">Preço Mensal (R$)</Label>
                 <Input
-                  type="number"
-                  step="0.10"
-                  min="0"
+                  type="text"
+                  placeholder="Ex: 49,90 ou 499,99"
                   value={formData.priceMonthly}
-                  onChange={(e) => setFormData({ ...formData, priceMonthly: parseFloat(e.target.value) || 0 })}
-                  className="bg-[#FAF6F2] border-[#DECDBB]"
+                  onChange={(e) => setFormData({ ...formData, priceMonthly: e.target.value })}
+                  className="bg-[#FAF6F2] border-[#DECDBB] font-mono text-sm"
                 />
               </div>
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-[#444444]">Preço Anual (R$ Total)</Label>
                 <Input
-                  type="number"
-                  step="1"
-                  min="0"
+                  type="text"
+                  placeholder="Ex: 490,00 ou 4990,90"
                   value={formData.priceYearly}
-                  onChange={(e) => setFormData({ ...formData, priceYearly: parseFloat(e.target.value) || 0 })}
-                  className="bg-[#FAF6F2] border-[#DECDBB]"
+                  onChange={(e) => setFormData({ ...formData, priceYearly: e.target.value })}
+                  className="bg-[#FAF6F2] border-[#DECDBB] font-mono text-sm"
                 />
               </div>
 
@@ -284,9 +289,9 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
               2. Limites do Plano (Defina 0 para Ilimitado)
             </h4>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#444444]">Máx Colaboradores</Label>
+                <Label className="text-xs font-semibold text-[#444444]">Colaboradores</Label>
                 <Input
                   type="number"
                   min="0"
@@ -294,23 +299,32 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
                   onChange={(e) => setFormData({ ...formData, maxUsers: parseInt(e.target.value) || 0 })}
                   className="bg-[#FAF6F2] border-[#DECDBB]"
                 />
-                <span className="text-[10px] text-[#777777]">0 = Ilimitado</span>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#444444]">Máx Clientes CRM</Label>
+                <Label className="text-xs font-semibold text-[#444444]">Atendimentos/mês</Label>
                 <Input
                   type="number"
                   min="0"
-                  value={formData.maxClients}
-                  onChange={(e) => setFormData({ ...formData, maxClients: parseInt(e.target.value) || 0 })}
+                  value={formData.maxAppointmentsPerMonth}
+                  onChange={(e) => setFormData({ ...formData, maxAppointmentsPerMonth: parseInt(e.target.value) || 0 })}
                   className="bg-[#FAF6F2] border-[#DECDBB]"
                 />
-                <span className="text-[10px] text-[#777777]">0 = Ilimitado</span>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-[#444444]">Máx Linhas WhatsApp</Label>
+                <Label className="text-xs font-semibold text-[#444444]">O.S. / Orçamentos</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={formData.maxWorkOrdersPerMonth}
+                  onChange={(e) => setFormData({ ...formData, maxWorkOrdersPerMonth: parseInt(e.target.value) || 0 })}
+                  className="bg-[#FAF6F2] border-[#DECDBB]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-[#444444]">Linhas WhatsApp</Label>
                 <Input
                   type="number"
                   min="1"
@@ -322,72 +336,72 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
             </div>
           </div>
 
-          {/* Módulos Habilitados (Features) */}
+          {/* Módulos Habilitados */}
           <div className="rounded-xl border border-[#DECDBB] bg-white p-4 space-y-3">
-            <h4 className="text-xs font-bold text-[#E8622C] uppercase tracking-wider">
-              3. Módulos & Recursos Habilitados
+            <h4 className="text-xs font-bold text-[#E8622C] uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" /> 3. Módulos & Permissões Liberadas
             </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-              <label className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF6F2] cursor-pointer">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <label className="flex items-center justify-between p-2.5 rounded-lg border border-[#DECDBB] hover:bg-[#FAF6F2] cursor-pointer">
+                <span>Emissão de Nota Fiscal (NF-e)</span>
                 <Switch
                   checked={formData.hasNfe}
                   onCheckedChange={(val: boolean) => setFormData({ ...formData, hasNfe: val })}
                 />
-                <span>Emissão de Nota Fiscal (Focus NFe)</span>
               </label>
 
-              <label className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF6F2] cursor-pointer">
+              <label className="flex items-center justify-between p-2.5 rounded-lg border border-[#DECDBB] hover:bg-[#FAF6F2] cursor-pointer">
+                <span>Disparo em Lote WhatsApp</span>
                 <Switch
                   checked={formData.hasWhatsAppBroadcast}
                   onCheckedChange={(val: boolean) => setFormData({ ...formData, hasWhatsAppBroadcast: val })}
                 />
-                <span>Disparo em Lote no WhatsApp</span>
               </label>
 
-              <label className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF6F2] cursor-pointer">
+              <label className="flex items-center justify-between p-2.5 rounded-lg border border-[#DECDBB] hover:bg-[#FAF6F2] cursor-pointer">
+                <span>Trilha de Auditoria (Logs)</span>
                 <Switch
                   checked={formData.hasAuditLogs}
                   onCheckedChange={(val: boolean) => setFormData({ ...formData, hasAuditLogs: val })}
                 />
-                <span>Trilha de Auditoria de Ações</span>
               </label>
 
-              <label className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF6F2] cursor-pointer">
+              <label className="flex items-center justify-between p-2.5 rounded-lg border border-[#DECDBB] hover:bg-[#FAF6F2] cursor-pointer">
+                <span>Múltiplos Atendentes / Agenda</span>
+                <Switch
+                  checked={formData.hasMultipleAttendants}
+                  onCheckedChange={(val: boolean) => setFormData({ ...formData, hasMultipleAttendants: val })}
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-2.5 rounded-lg border border-[#DECDBB] hover:bg-[#FAF6F2] cursor-pointer">
+                <span>Relatórios Financeiros & LTV</span>
                 <Switch
                   checked={formData.hasFinancialReports}
                   onCheckedChange={(val: boolean) => setFormData({ ...formData, hasFinancialReports: val })}
                 />
-                <span>Relatórios Financeiros & DRE</span>
               </label>
 
-              <label className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF6F2] cursor-pointer">
-                <Switch
-                  checked={formData.hasCustomPdfBranding}
-                  onCheckedChange={(val: boolean) => setFormData({ ...formData, hasCustomPdfBranding: val })}
-                />
-                <span>PDFs com Logo Customizada</span>
-              </label>
-
-              <label className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF6F2] cursor-pointer">
+              <label className="flex items-center justify-between p-2.5 rounded-lg border border-[#DECDBB] hover:bg-[#FAF6F2] cursor-pointer">
+                <span>Acesso a Webhooks & API Aberta</span>
                 <Switch
                   checked={formData.hasApiAccess}
                   onCheckedChange={(val: boolean) => setFormData({ ...formData, hasApiAccess: val })}
                 />
-                <span>Acesso a Webhooks & API</span>
               </label>
             </div>
           </div>
 
-          {/* Lista de Benefícios (Bullets) */}
-          <div className="rounded-xl border border-[#DECDBB] bg-white p-4 space-y-2.5">
-            <h4 className="text-xs font-bold text-[#E8622C] uppercase tracking-wider">
-              4. Benefícios Visíveis nos Cards
+          {/* Bullets Comerciais */}
+          <div className="rounded-xl border border-[#DECDBB] bg-white p-4 space-y-3">
+            <h4 className="text-xs font-bold text-[#E8622C] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4" /> 4. Vantagens Comerciais (Bullets da Tabela)
             </h4>
 
             <div className="flex gap-2">
               <Input
-                placeholder="Adicionar novo benefício..."
+                placeholder="Ex: Suporte humanizado 24h via WhatsApp..."
                 value={newBullet}
                 onChange={(e) => setNewBullet(e.target.value)}
                 onKeyDown={(e) => {
@@ -400,26 +414,28 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
               />
               <Button
                 type="button"
-                onClick={handleAddBullet}
                 variant="outline"
-                size="sm"
-                className="border-[#DECDBB] text-[#E8622C]"
+                onClick={handleAddBullet}
+                className="border-[#DECDBB] text-[#E8622C] hover:bg-[#FFF3EE]"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-1" /> Adicionar
               </Button>
             </div>
 
-            <div className="space-y-1.5 max-h-36 overflow-y-auto pt-1">
-              {formData.featureList.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-1.5 rounded-lg bg-[#FAF6F2] text-xs">
+            <div className="space-y-1.5 pt-1">
+              {formData.featureList.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 rounded-lg bg-[#FAF6F2] border border-[#DECDBB] text-xs text-[#333333]"
+                >
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981] shrink-0" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />
                     <span>{item}</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleRemoveBullet(idx)}
-                    className="text-red-500 hover:text-red-700 p-1"
+                    onClick={() => handleRemoveBullet(index)}
+                    className="text-[#999999] hover:text-red-600 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -442,7 +458,7 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
               disabled={loading}
               className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105"
             >
-              {loading ? 'Salvando...' : 'Salvar Plano'}
+              {loading ? 'Salvando Plano...' : 'Salvar Plano SaaS'}
             </Button>
           </DialogFooter>
         </form>

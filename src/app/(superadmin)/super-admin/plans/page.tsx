@@ -149,7 +149,7 @@ export default function SuperAdminPlansPage() {
                 </div>
                 {plan.priceYearly > 0 && (
                   <div className="text-[11px] text-[#10B981] font-semibold mt-1">
-                    Anual: R$ {Number(plan.priceYearly).toFixed(2)}
+                    Anual: R$ {Number(plan.priceYearly).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 )}
               </div>
