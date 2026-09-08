@@ -21,23 +21,36 @@ export async function saveMediaBuffer(
   mimeType: string,
   originalFileName?: string
 ): Promise<{ fileId: string; mediaUrl: string }> {
-  const dir = ensureMediaDir();
+  const rawMime = (mimeType || '').split(';')[0].trim().toLowerCase();
   const extMap: Record<string, string> = {
     'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
     'image/png': '.png',
     'image/webp': '.webp',
     'image/gif': '.gif',
     'video/mp4': '.mp4',
+    'video/webm': '.webm',
+    'video/quicktime': '.mov',
     'video/3gpp': '.3gp',
     'audio/ogg': '.ogg',
+    'audio/webm': '.webm',
     'audio/mp4': '.m4a',
+    'audio/m4a': '.m4a',
     'audio/mpeg': '.mp3',
+    'audio/mp3': '.mp3',
+    'audio/wav': '.wav',
+    'audio/x-wav': '.wav',
     'audio/aac': '.aac',
     'application/pdf': '.pdf',
+    'application/msword': '.doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.ms-excel': '.xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
   };
 
-  const ext = extMap[mimeType.split(';')[0]] || path.extname(originalFileName || '') || '.bin';
-  const fileId = `med_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+  const dir = ensureMediaDir();
+  const detectedExt = extMap[rawMime] || path.extname(originalFileName || '') || (rawMime.startsWith('audio/') ? '.ogg' : rawMime.startsWith('video/') ? '.mp4' : rawMime.startsWith('image/') ? '.jpg' : '.bin');
+  const fileId = `med_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${detectedExt}`;
   const filePath = path.join(dir, fileId);
   const metaPath = path.join(dir, `${fileId}.json`);
 

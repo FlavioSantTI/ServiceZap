@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/appwrite/server';
 import { Query, ID } from 'node-appwrite';
 import { WhatsAppInstanceDocument, WhatsAppStatus, MessageDocument } from '@/types/appwrite';
 import { getEmbeddedWhatsAppEngine } from '@/lib/whatsapp/embeddedEngine';
-import { sanitizeWhatsAppJid } from '@/lib/services/whatsappSyncService';
+import { WhatsAppSyncService, sanitizeWhatsAppJid } from '@/lib/services/whatsappSyncService';
 import { saveMediaBuffer } from '@/lib/utils/mediaStorage';
 import { mockWhatsAppInstance } from '@/lib/mock-data';
 import { revalidatePath } from 'next/cache';
@@ -189,6 +189,7 @@ export async function sendWhatsAppMessageDirectAction(
 
     let docId = `msg_${Date.now()}`;
     const initialWamid = `app_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    WhatsAppSyncService.registerAppSentWamid(initialWamid);
 
     // 1. Persistência inicial no Appwrite (status: pending, origin: app_ui)
     if (process.env.APPWRITE_API_KEY) {
@@ -223,6 +224,7 @@ export async function sendWhatsAppMessageDirectAction(
       const sendResult = await engine.sendTextMessage(cleanPhone, content.trim());
       if (sendResult?.wamid) {
         realWamid = sendResult.wamid;
+        WhatsAppSyncService.registerAppSentWamid(realWamid);
       }
     } catch (engineErr: any) {
       console.warn('[WhatsAppAction] Erro no envio via motor embutido:', engineErr.message);
@@ -466,7 +468,7 @@ export async function disconnectWhatsAppAction(): Promise<{ success: boolean }> 
  */
 export async function getWhatsAppMessagesAction(
   phone?: string,
-  limit = 50
+  limit = 100
 ): Promise<MessageDocument[]> {
   try {
     if (!process.env.APPWRITE_API_KEY) {
@@ -475,7 +477,7 @@ export async function getWhatsAppMessagesAction(
 
     const { databases } = await createAdminClient();
     const queries = [
-      Query.orderAsc('created_at'),
+      Query.orderDesc('created_at'),
       Query.limit(limit),
     ];
 
@@ -498,7 +500,9 @@ export async function getWhatsAppMessagesAction(
       queries
     );
 
-    return JSON.parse(JSON.stringify(response.documents));
+    // Reverte para ordem cronológica ascendente (mais antigas em cima, mais novas embaixo)
+    const docs = response.documents.reverse();
+    return JSON.parse(JSON.stringify(docs));
   } catch (error) {
     console.error('[WhatsAppAction] Erro ao buscar mensagens via Server Action:', error);
     return [];

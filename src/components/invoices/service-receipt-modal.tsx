@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Printer,
   Send,
@@ -13,6 +14,7 @@ import {
   DollarSign,
   ShieldCheck,
   X,
+  MessageSquare,
 } from 'lucide-react';
 import {
   Dialog,
@@ -38,6 +40,7 @@ export function ServiceReceiptModal({
   open,
   onOpenChange,
 }: ServiceReceiptModalProps) {
+  const router = useRouter();
   const [tenant, setTenant] = useState<Partial<TenantDocument>>(mockTenant);
   const [emailSent, setEmailSent] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -75,17 +78,22 @@ export function ServiceReceiptModal({
   };
 
   const handleSendWhatsApp = () => {
-    const text = encodeURIComponent(
+    const text =
       `🧾 *RECIBO DE PRESTAÇÃO DE SERVIÇO*\n\n` +
       `*Nº do Recibo:* ${receiptNumber}\n` +
-      `*Prestador:* ${tenant.name || 'Empresa Prestadora'}\n` +
+      `*Prestador:* ${tenant.name || tenant.companyName || 'Empresa Prestadora'}\n` +
       `*Cliente:* ${invoice.clientName}\n` +
       `*Valor:* R$ ${formattedAmount}\n` +
       `*Status:* ${isPaid ? 'PAGO / QUITADO' : 'PENDENTE'}\n` +
       `*Descrição:* ${invoice.description || 'Prestação de Serviço'}\n\n` +
-      `Obrigado pela preferência!`
-    );
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+      `Obrigado pela preferência!`;
+
+    const params = new URLSearchParams();
+    if (invoice.clientName) params.set('clientName', invoice.clientName);
+    params.set('text', text);
+
+    onOpenChange(false);
+    router.push(`/dashboard/whatsapp?${params.toString()}`);
   };
 
   const handleSendEmail = () => {
@@ -105,7 +113,7 @@ export function ServiceReceiptModal({
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-emerald-600" />
+                <FileText className="h-5 w-5 text-[#E8622C]" />
                 <span>Recibo de Prestação de Serviço</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
@@ -131,7 +139,7 @@ export function ServiceReceiptModal({
             <Button
               onClick={handleSendWhatsApp}
               size="sm"
-              className="h-8 gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold"
+              className="h-8 gap-1.5 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white rounded-xl text-xs font-bold shadow-sm shadow-orange-500/20"
             >
               <Send className="h-3.5 w-3.5" />
               <span>Enviar WhatsApp</span>
@@ -142,15 +150,15 @@ export function ServiceReceiptModal({
               disabled={sendingEmail}
               size="sm"
               variant="outline"
-              className="h-8 gap-1.5 rounded-lg border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold"
+              className="h-8 gap-1.5 rounded-xl border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-semibold"
             >
-              <Mail className="h-3.5 w-3.5 text-blue-500" />
+              <Mail className="h-3.5 w-3.5 text-[#E8622C]" />
               <span>{sendingEmail ? 'Enviando...' : 'Enviar por E-mail'}</span>
             </Button>
           </div>
 
           {emailSent && (
-            <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+            <span className="text-xs text-[#E8622C] font-bold flex items-center gap-1">
               <CheckCircle2 className="h-3.5 w-3.5" />
               E-mail enviado!
             </span>
@@ -158,31 +166,31 @@ export function ServiceReceiptModal({
         </div>
 
         {/* CORPO DO RECIBO (Imprimível em A4) */}
-        <div className="p-6 bg-white text-slate-900 rounded-2xl border border-slate-200 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0 print:w-full">
+        <div className="p-6 bg-white text-[#2B2B2B] rounded-2xl border border-neutral-200 shadow-warm-sm space-y-6 print:border-none print:shadow-none print:p-0 print:w-full">
           {/* Topo do Recibo */}
-          <div className="flex items-start justify-between border-b pb-4 border-slate-200">
+          <div className="flex items-start justify-between border-b pb-4 border-neutral-200">
             <div>
-              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 uppercase">
+              <h2 className="text-xl font-extrabold tracking-tight text-[#2B2B2B] uppercase">
                 {tenant.name || 'PRESTADOR DE SERVIÇOS'}
               </h2>
               {tenant.companyName && (
-                <p className="text-xs text-slate-500 font-medium">{tenant.companyName}</p>
+                <p className="text-xs text-neutral-500 font-medium">{tenant.companyName}</p>
               )}
-              <p className="text-xs text-slate-600 mt-1 font-mono">
+              <p className="text-xs text-neutral-600 mt-1 font-mono">
                 CNPJ/CPF: {tenant.document || '00.000.000/0001-00'}
               </p>
-              {tenant.email && <p className="text-xs text-slate-500">E-mail: {tenant.email}</p>}
-              {tenant.phone && <p className="text-xs text-slate-500">Tel/WhatsApp: {tenant.phone}</p>}
+              {tenant.email && <p className="text-xs text-neutral-500">E-mail: {tenant.email}</p>}
+              {tenant.phone && <p className="text-xs text-neutral-500">Tel/WhatsApp: {tenant.phone}</p>}
             </div>
 
             <div className="text-right space-y-1">
-              <div className="inline-block bg-slate-100 text-slate-900 px-3 py-1 rounded-lg border border-slate-200">
-                <p className="text-[10px] text-slate-500 uppercase font-bold">RECIBO Nº</p>
+              <div className="inline-block bg-[#FAF6F2] text-[#2B2B2B] px-3 py-1 rounded-xl border border-neutral-200">
+                <p className="text-[10px] text-neutral-500 uppercase font-bold">RECIBO Nº</p>
                 <p className="text-sm font-extrabold font-mono">{receiptNumber}</p>
               </div>
               <div>
                 {isPaid ? (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-orange-100 text-orange-800 border border-orange-300 uppercase tracking-wide">
                     ✓ QUITADO / PAGO
                   </span>
                 ) : (
@@ -195,29 +203,29 @@ export function ServiceReceiptModal({
           </div>
 
           {/* Dados da Transação */}
-          <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-2 gap-4 bg-[#FAF6F2] p-4 rounded-xl border border-neutral-200">
             <div>
-              <p className="text-[10px] font-bold uppercase text-slate-400">Tomador / Cliente</p>
-              <p className="text-sm font-extrabold text-slate-900 mt-0.5">{invoice.clientName}</p>
+              <p className="text-[10px] font-bold uppercase text-neutral-400">Tomador / Cliente</p>
+              <p className="text-sm font-extrabold text-[#2B2B2B] mt-0.5">{invoice.clientName}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold uppercase text-slate-400">Valor do Recibo</p>
-              <p className="text-xl font-black text-emerald-600 mt-0.5">
+              <p className="text-[10px] font-bold uppercase text-neutral-400">Valor do Recibo</p>
+              <p className="text-xl font-black text-[#E8622C] mt-0.5">
                 R$ {formattedAmount}
               </p>
             </div>
           </div>
 
           {/* Declaração Formal de Quitação */}
-          <div className="space-y-3 text-xs leading-relaxed text-slate-700 bg-white p-4 rounded-xl border border-slate-200">
+          <div className="space-y-3 text-xs leading-relaxed text-neutral-700 bg-white p-4 rounded-xl border border-neutral-200">
             <p>
-              Recebi(emos) de <strong className="text-slate-900">{invoice.clientName}</strong> a quantia de{' '}
-              <strong className="text-emerald-700">R$ {formattedAmount}</strong> referente ao pagamento da prestação do(s) seguinte(s) serviço(s):
+              Recebi(emos) de <strong className="text-[#2B2B2B]">{invoice.clientName}</strong> a quantia de{' '}
+              <strong className="text-[#E8622C]">R$ {formattedAmount}</strong> referente ao pagamento da prestação do(s) seguinte(s) serviço(s):
             </p>
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-medium text-slate-800">
+            <div className="p-3 bg-[#FAF6F2] rounded-xl border border-neutral-200 font-medium text-[#2B2B2B]">
               {invoice.description || 'Serviços prestados conforme acerto comercial.'}
             </div>
-            <p className="text-[11px] text-slate-500 italic">
+            <p className="text-[11px] text-neutral-500 italic">
               {isPaid
                 ? 'Para clareza e como prova de haver recebido a importância mencionada, firmo o presente recibo dando plena e geral quitação.'
                 : 'Este recibo servirá como comprovante definitivo de quitação assim que o pagamento for compensado.'}

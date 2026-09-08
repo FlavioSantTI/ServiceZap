@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WhatsAppSyncService, WebhookMessageUpsertPayload } from '@/lib/services/whatsappSyncService';
+import { saveMediaBuffer } from '@/lib/utils/mediaStorage';
 
 /**
  * Endpoint de fallback/integração para receber eventos MESSAGES_UPSERT da Evolution API
@@ -39,11 +40,66 @@ export async function POST(req: NextRequest) {
       const fromMe = Boolean(key.fromMe);
       const rawJid = key.remoteJid || '';
 
+      // Identificação e extração de Mídia
+      let mediaType: 'image' | 'video' | 'audio' | 'document' | undefined = undefined;
+      let mimeType: string | undefined = undefined;
+      let fileName: string | undefined = undefined;
+      let mediaUrl: string | undefined = undefined;
+
+      const imgMsg = message.imageMessage;
+      const vidMsg = message.videoMessage || message.ptvMessage;
+      const audMsg = message.audioMessage;
+      const docMsg = message.documentMessage;
+      const stickerMsg = message.stickerMessage;
+
+      if (imgMsg) {
+        mediaType = 'image';
+        mimeType = imgMsg.mimetype || 'image/jpeg';
+      } else if (vidMsg) {
+        mediaType = 'video';
+        mimeType = vidMsg.mimetype || 'video/mp4';
+      } else if (audMsg) {
+        mediaType = 'audio';
+        mimeType = audMsg.mimetype || 'audio/ogg';
+      } else if (docMsg) {
+        mediaType = 'document';
+        mimeType = docMsg.mimetype || 'application/octet-stream';
+        fileName = docMsg.fileName || 'documento';
+      } else if (stickerMsg) {
+        mediaType = 'image';
+        mimeType = stickerMsg.mimetype || 'image/webp';
+        fileName = 'figurinha.webp';
+      }
+
+      // Se a Evolution enviou base64 diretamente
+      const base64Data =
+        messageData.base64 ||
+        message.base64 ||
+        imgMsg?.base64 ||
+        vidMsg?.base64 ||
+        audMsg?.base64 ||
+        docMsg?.base64;
+
+      if (base64Data && mediaType) {
+        try {
+          const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+          const buffer = Buffer.from(cleanBase64, 'base64');
+          if (buffer.length > 0) {
+            const saved = await saveMediaBuffer(buffer, mimeType || 'application/octet-stream', fileName);
+            mediaUrl = saved.mediaUrl;
+            console.log(`📸 [EvolutionWebhook] Mídia base64 salva com sucesso: ${mediaUrl}`);
+          }
+        } catch (mediaErr) {
+          console.warn('[EvolutionWebhook] Erro ao salvar buffer base64 da mídia:', mediaErr);
+        }
+      }
+
       const content =
         message.conversation ||
         message.extendedTextMessage?.text ||
-        message.imageMessage?.caption ||
-        message.videoMessage?.caption ||
+        imgMsg?.caption ||
+        vidMsg?.caption ||
+        docMsg?.caption ||
         '';
 
       const timestamp = messageData.messageTimestamp
@@ -57,6 +113,10 @@ export async function POST(req: NextRequest) {
         content,
         timestamp,
         tenantId: body.instance || 'default',
+        mediaType,
+        mediaUrl,
+        mimeType,
+        fileName,
       };
 
       if (!fromMe) {

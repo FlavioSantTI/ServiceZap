@@ -116,17 +116,17 @@ export function PairingCodeDialog({
       <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-6 text-slate-900 dark:text-slate-100">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/15 text-[#E8622C] border border-orange-500/20 shrink-0">
               <KeyRound className="h-5 w-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                 Conectar WhatsApp
-                <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+                <Badge variant="outline" className="text-[10px] border-orange-500/30 text-[#E8622C] bg-orange-500/10">
                   Pairing Code
                 </Badge>
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Pareamento seguro via código de 8 dígitos no celular (Sem QR Code).
               </DialogDescription>
             </div>
@@ -134,33 +134,33 @@ export function PairingCodeDialog({
         </DialogHeader>
 
         {isConnected ? (
-          <div className="my-6 flex flex-col items-center justify-center py-6 text-center space-y-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-            <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 animate-bounce">
+          <div className="my-6 flex flex-col items-center justify-center py-6 text-center space-y-3 bg-orange-500/10 border border-orange-500/20 rounded-2xl">
+            <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center text-[#E8622C] animate-bounce">
               <CheckCircle2 className="h-6 w-6" />
             </div>
-            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">WhatsApp Conectado com Sucesso!</h4>
-            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xs">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">WhatsApp Conectado com Sucesso!</h4>
+            <p className="text-xs text-zinc-600 dark:text-zinc-300 max-w-xs">
               Sua conta está sincronizada. Mensagens enviadas e recebidas serão espelhadas em tempo real.
             </p>
           </div>
         ) : !pairingCode ? (
           <form onSubmit={handleGenerateCode} className="space-y-4 my-2">
             <div className="space-y-1.5">
-              <Label htmlFor="wa-phone" className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+              <Label htmlFor="wa-phone" className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
                 Número do WhatsApp (com DDI e DDD)
               </Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                 <Input
                   id="wa-phone"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="Ex: 5511998887777"
-                  className="pl-9 h-10 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus-visible:ring-emerald-500"
+                  className="pl-9 h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-[#E8622C]"
                   required
                 />
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-zinc-500">
                 Informe o número com o código do país (55 para Brasil) e DDD sem espaços ou traços.
               </p>
             </div>
@@ -177,14 +177,14 @@ export function PairingCodeDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-9 text-xs rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                className="h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-9 gap-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20"
+                className="h-9 gap-2 text-xs font-bold rounded-xl bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white shadow-md shadow-orange-500/20"
               >
                 {loading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                 <span>{loading ? 'Aguardando Servidor...' : 'Gerar Código de 8 Dígitos'}</span>
@@ -194,11 +194,11 @@ export function PairingCodeDialog({
         ) : (
           <div className="space-y-4 my-2">
             {/* Bloco do Código de 8 Dígitos */}
-            <div className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl relative overflow-hidden">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+            <div className="flex flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl relative overflow-hidden">
+              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                 Seu Código de Pareamento
               </div>
-              <div className="font-mono text-3xl font-extrabold tracking-widest text-emerald-600 dark:text-emerald-400 my-1 select-all">
+              <div className="font-mono text-3xl font-extrabold tracking-widest text-[#E8622C] my-1 select-all">
                 {pairingCode}
               </div>
               <Button
@@ -206,31 +206,31 @@ export function PairingCodeDialog({
                 size="sm"
                 variant="outline"
                 onClick={handleCopy}
-                className="h-8 gap-1.5 text-xs rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 mt-1"
+                className="h-8 gap-1.5 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 mt-1"
               >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? <Check className="h-3.5 w-3.5 text-[#E8622C]" /> : <Copy className="h-3.5 w-3.5" />}
                 <span>{copied ? 'Copiado!' : 'Copiar Código'}</span>
               </Button>
             </div>
 
             {/* Passo a Passo no Smartphone */}
-            <div className="space-y-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 p-3.5 text-xs text-slate-600 dark:text-slate-300">
-              <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100 mb-1">
-                <Smartphone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <div className="space-y-2 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 p-3.5 text-xs text-zinc-600 dark:text-zinc-300">
+              <div className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                <Smartphone className="h-4 w-4 text-[#E8622C]" />
                 <span>Como confirmar no seu WhatsApp:</span>
               </div>
-              <ol className="space-y-1 list-decimal pl-5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              <ol className="space-y-1 list-decimal pl-5 text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                 <li>Abra o WhatsApp no celular.</li>
-                <li>Toque nos 3 pontinhos &gt; <strong className="text-slate-700 dark:text-slate-200">Aparelhos Conectados</strong>.</li>
-                <li>Toque em <strong className="text-slate-700 dark:text-slate-200">Conectar um aparelho</strong>.</li>
-                <li>Na parte inferior, selecione <strong className="text-emerald-600 dark:text-emerald-400">"Conectar com número de telefone"</strong>.</li>
+                <li>Toque nos 3 pontinhos &gt; <strong className="text-zinc-700 dark:text-zinc-200">Aparelhos Conectados</strong>.</li>
+                <li>Toque em <strong className="text-zinc-700 dark:text-zinc-200">Conectar um aparelho</strong>.</li>
+                <li>Na parte inferior, selecione <strong className="text-[#E8622C]">"Conectar com número de telefone"</strong>.</li>
                 <li>Digite o código de 8 dígitos acima.</li>
               </ol>
             </div>
 
             {/* Indicador de Espera / Polling */}
-            <div className="flex items-center justify-center gap-2 text-xs text-slate-500 py-1">
-              <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+            <div className="flex items-center justify-center gap-2 text-xs text-zinc-500 py-1">
+              <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#E8622C]" />
               <span>Aguardando confirmação do celular...</span>
             </div>
 
@@ -239,7 +239,7 @@ export function PairingCodeDialog({
                 type="button"
                 variant="ghost"
                 onClick={() => setPairingCode(null)}
-                className="text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 text-xs"
+                className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 text-xs"
               >
                 Alterar Número
               </Button>
@@ -247,7 +247,7 @@ export function PairingCodeDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-9 text-xs rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                className="h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
               >
                 Fechar
               </Button>

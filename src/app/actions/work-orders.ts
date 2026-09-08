@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/appwrite/server';
 import { Query, ID } from 'node-appwrite';
-import { WorkOrderDocument, WorkOrderStatus, WorkOrderType } from '@/types/appwrite';
+import { WorkOrderDocument, WorkOrderStatus, WorkOrderType, WorkOrderItem } from '@/types/appwrite';
 import { mockWorkOrders } from '@/lib/mock-data';
 import { createInvoiceAction } from './invoices';
 import { revalidatePath } from 'next/cache';
@@ -42,13 +42,18 @@ export async function createWorkOrderAction(data: {
   clientEmail?: string;
   serviceId?: string;
   serviceName: string;
+  items?: WorkOrderItem[];
+  itemsJson?: string;
   amount: number;
+  discount?: number;
   dueDate?: string;
+  executionDate?: string;
   notes?: string;
 }): Promise<{ success: boolean; data?: Partial<WorkOrderDocument>; error?: string }> {
   try {
     const prefix = data.type === 'quote' ? 'ORC' : 'OS';
     const number = `${prefix}-2026-${Math.floor(Math.random() * 900 + 100)}`;
+    const itemsJsonString = data.itemsJson || (data.items ? JSON.stringify(data.items) : '');
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       const mockCreated: Partial<WorkOrderDocument> = {
@@ -63,9 +68,12 @@ export async function createWorkOrderAction(data: {
         clientEmail: data.clientEmail,
         serviceId: data.serviceId,
         serviceName: data.serviceName,
+        itemsJson: itemsJsonString,
         amount: data.amount,
+        discount: data.discount || 0,
         status: data.type === 'quote' ? 'quote_sent' : 'approved',
         dueDate: data.dueDate,
+        executionDate: data.executionDate,
         notes: data.notes,
       };
 
@@ -85,14 +93,17 @@ export async function createWorkOrderAction(data: {
         number,
         clientId: data.clientId,
         clientName: data.clientName,
-        clientPhone: data.clientPhone,
-        clientEmail: data.clientEmail,
-        serviceId: data.serviceId,
+        clientPhone: data.clientPhone || '',
+        clientEmail: data.clientEmail || '',
+        serviceId: data.serviceId || '',
         serviceName: data.serviceName,
+        itemsJson: itemsJsonString,
         amount: data.amount,
+        discount: data.discount || 0,
         status: data.type === 'quote' ? 'quote_sent' : 'approved',
-        dueDate: data.dueDate,
-        notes: data.notes,
+        dueDate: data.dueDate || '',
+        executionDate: data.executionDate || '',
+        notes: data.notes || '',
       }
     );
 
@@ -100,7 +111,71 @@ export async function createWorkOrderAction(data: {
     revalidatePath('/dashboard/work-orders');
     return { success: true, data: JSON.parse(JSON.stringify(document)) };
   } catch (err: any) {
+    console.error('Erro ao criar Ordem de Serviço no Appwrite:', err);
     return { success: false, error: err.message || 'Erro ao criar Ordem de Serviço no Appwrite' };
+  }
+}
+
+export async function updateWorkOrderAction(
+  id: string,
+  data: Partial<{
+    type: WorkOrderType;
+    clientId: string;
+    clientName: string;
+    clientPhone?: string;
+    clientEmail?: string;
+    serviceId?: string;
+    serviceName: string;
+    items?: WorkOrderItem[];
+    itemsJson?: string;
+    amount: number;
+    discount?: number;
+    status?: WorkOrderStatus;
+    dueDate?: string;
+    executionDate?: string;
+    invoiceId?: string;
+    notes?: string;
+  }>
+): Promise<{ success: boolean; data?: Partial<WorkOrderDocument>; error?: string }> {
+  try {
+    const itemsJsonString = data.itemsJson || (data.items ? JSON.stringify(data.items) : undefined);
+
+    const updatePayload: any = { ...data };
+    if (itemsJsonString !== undefined) {
+      updatePayload.itemsJson = itemsJsonString;
+    }
+    delete updatePayload.items;
+
+    if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
+      revalidatePath('/dashboard');
+      revalidatePath('/dashboard/work-orders');
+      return { success: true, data: { $id: id, ...updatePayload } };
+    }
+
+    const { databases } = await createAdminClient();
+    let document;
+    try {
+      document = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTION_WORK_ORDERS,
+        id,
+        updatePayload
+      );
+    } catch (err: any) {
+      if (err.code === 404 || err.type === 'document_not_found') {
+        revalidatePath('/dashboard');
+        revalidatePath('/dashboard/work-orders');
+        return { success: true, data: { $id: id, ...updatePayload } };
+      }
+      throw err;
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/work-orders');
+    return { success: true, data: JSON.parse(JSON.stringify(document)) };
+  } catch (err: any) {
+    console.error('Erro ao atualizar Ordem de Serviço no Appwrite:', err);
+    return { success: false, error: err.message || 'Erro ao atualizar Ordem de Serviço no Appwrite' };
   }
 }
 
@@ -167,7 +242,10 @@ export async function convertWorkOrderToInvoiceAction(
     }
 
     const invoiceId = invoiceRes.data.$id;
-    await updateWorkOrderStatusAction(workOrderId, 'billed');
+    await updateWorkOrderAction(workOrderId, {
+      status: 'billed',
+      invoiceId,
+    });
 
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/work-orders');

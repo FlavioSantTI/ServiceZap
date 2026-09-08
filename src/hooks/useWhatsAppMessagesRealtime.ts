@@ -74,16 +74,37 @@ export function useWhatsAppMessagesRealtime({
         docs = response.documents;
       }
 
-      // Popula o map preservando mensagens optimistas pendentes
+      // Popula o map eliminando qualquer duplicata residual por whatsapp_message_id
       const newMap = new Map<string, MessageDocument>();
+      const seenWamids = new Set<string>();
+
       for (const doc of docs) {
-        if (doc && doc.$id) {
-          newMap.set(doc.$id, doc);
+        if (!doc || !doc.$id) continue;
+        const wamid = doc.whatsapp_message_id;
+        if (wamid && !wamid.startsWith('app_') && !wamid.startsWith('temp_')) {
+          if (seenWamids.has(wamid)) {
+            continue; // descarta documento duplicado com mesmo WAMID
+          }
+          seenWamids.add(wamid);
         }
+        newMap.set(doc.$id, doc);
       }
+
+      // Preserva mensagens otimistas temporárias apenas se ainda não foram salvas
+      const now = Date.now();
       for (const [key, existing] of messagesMapRef.current.entries()) {
-        if (key.startsWith('temp_') && !newMap.has(key)) {
-          newMap.set(key, existing);
+        if (key.startsWith('temp_')) {
+          const isAlreadySaved = Array.from(newMap.values()).some((saved) => {
+            const isSameDir = saved.direction === existing.direction;
+            const isRecent = Math.abs(now - new Date(saved.created_at || saved.$createdAt).getTime()) < 45000;
+            const isSameContent = saved.content && existing.content && saved.content.trim() === existing.content.trim();
+            const isSameMedia = (saved.fileName && saved.fileName === existing.fileName) || (saved.mediaUrl && saved.mediaUrl === existing.mediaUrl);
+            return isSameDir && isRecent && (isSameContent || isSameMedia);
+          });
+
+          if (!isAlreadySaved) {
+            newMap.set(key, existing);
+          }
         }
       }
       messagesMapRef.current = newMap;
@@ -126,11 +147,23 @@ export function useWhatsAppMessagesRealtime({
       }
 
       if (isCreate || isUpdate) {
+        // Remove mensagem otimista correspondente se existir
+        for (const [key, existingDoc] of messagesMapRef.current.entries()) {
+          if (key.startsWith('temp_')) {
+            const isMatch = (payload.content && existingDoc.content === payload.content) ||
+                            (payload.fileName && existingDoc.fileName === payload.fileName);
+            if (isMatch) {
+              messagesMapRef.current.delete(key);
+              break;
+            }
+          }
+        }
+
         // PREVENÇÃO CONTRA DUPLICAÇÃO VISUAL:
         // Verifica se já existe um documento com o mesmo $id OU com o mesmo whatsapp_message_id
         let targetKey = payload.$id;
 
-        if (payload.whatsapp_message_id) {
+        if (payload.whatsapp_message_id && !payload.whatsapp_message_id.startsWith('app_')) {
           for (const [key, existingDoc] of messagesMapRef.current.entries()) {
             if (
               existingDoc.whatsapp_message_id === payload.whatsapp_message_id ||
@@ -152,9 +185,18 @@ export function useWhatsAppMessagesRealtime({
       }
     });
 
+    // 3. Fallback ativo de sincronização a cada 2.5 segundos
+    // Garante latência mínima e entrega imediata mesmo se o WebSocket do Appwrite Cloud oscilar/desconectar
+    const pollInterval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchMessages();
+      }
+    }, 2500);
+
     // Cleanup obrigatório para evitar memory leaks
     return () => {
       unsubscribe();
+      clearInterval(pollInterval);
     };
   }, [fetchMessages, phone, syncMessagesFromMap]);
 
@@ -167,11 +209,23 @@ export function useWhatsAppMessagesRealtime({
     [syncMessagesFromMap]
   );
 
+  // Função para remover mensagem temporária otimista após conclusão do envio
+  const removeOptimisticMessage = useCallback(
+    (tempId: string) => {
+      if (messagesMapRef.current.has(tempId)) {
+        messagesMapRef.current.delete(tempId);
+        syncMessagesFromMap();
+      }
+    },
+    [syncMessagesFromMap]
+  );
+
   return {
     messages,
     loading,
     error,
     refresh: fetchMessages,
     addOptimisticMessage,
+    removeOptimisticMessage,
   };
 }

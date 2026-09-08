@@ -66,14 +66,14 @@ export function ClientList({
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1 hover:bg-emerald-500/20">
+          <Badge className="bg-orange-500/15 text-[#E8622C] border-orange-500/30 gap-1 hover:bg-orange-500/20">
             <CheckCircle2 className="h-3 w-3" />
             <span>Ativo</span>
           </Badge>
         );
       case 'lead':
         return (
-          <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 gap-1 hover:bg-blue-500/20">
+          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1 hover:bg-amber-500/20">
             <Clock className="h-3 w-3" />
             <span>Lead</span>
           </Badge>
@@ -138,7 +138,7 @@ export function ClientList({
         <Button
           onClick={onNewClient}
           size="sm"
-          className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20 w-full sm:w-auto"
+          className="h-9 gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Novo Cliente</span>
@@ -181,7 +181,7 @@ export function ClientList({
                         <span>{cli.email}</span>
                       </p>
                       <p className="flex items-center gap-1 text-[11px] text-slate-400">
-                        <Phone className="h-3 w-3 text-emerald-500" />
+                        <Phone className="h-3 w-3 text-[#E8622C]" />
                         <span>{cli.phone}</span>
                       </p>
                     </div>
@@ -189,7 +189,7 @@ export function ClientList({
 
                   <TableCell className="text-xs font-extrabold text-slate-900 dark:text-slate-100">
                     <div>
-                      <p className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                      <p className="text-[#E8622C] font-extrabold">
                         R$ {cli.totalPaid?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
                       </p>
                       <p className="text-[10px] text-slate-400 font-normal">
@@ -206,7 +206,7 @@ export function ClientList({
                         onClick={() => onQuickCharge(cli)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 gap-1.5 text-xs text-emerald-600 hover:text-emerald-500 hover:bg-emerald-500/10 font-semibold"
+                        className="h-8 gap-1.5 text-xs text-[#E8622C] hover:text-orange-500 hover:bg-orange-500/10 font-semibold"
                         title="Emitir Cobrança PIX Direta"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -217,7 +217,7 @@ export function ClientList({
                         onClick={() => handleWhatsApp(cli.phone)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-emerald-500 hover:bg-emerald-500/10"
+                        className="h-8 w-8 p-0 text-[#E8622C] hover:bg-orange-500/10"
                         title="Abrir WhatsApp"
                       >
                         <Send className="h-4 w-4" />
@@ -227,7 +227,7 @@ export function ClientList({
                         onClick={() => onViewClientDetails(cli)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10"
+                        className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
                         title="Ver Histórico CRM 360°"
                       >
                         <Eye className="h-4 w-4" />

@@ -4,7 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ServiceList } from '@/components/services/service-list';
 import { ServiceDialog } from '@/components/services/service-dialog';
 import { ServiceDocument } from '@/types/appwrite';
-import { fetchServicesAction, createServiceAction } from '@/app/actions/services';
+import {
+  fetchServicesAction,
+  createServiceAction,
+  updateServiceAction,
+  deleteServiceAction,
+} from '@/app/actions/services';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Partial<ServiceDocument>[]>([]);
@@ -40,22 +45,57 @@ export default function ServicesPage() {
 
   const handleSaveService = async (saved: Partial<ServiceDocument>) => {
     try {
-      const res = await createServiceAction({
-        name: saved.name || '',
-        price: saved.price || 0,
-        durationMinutes: saved.durationMinutes || 30,
-        category: saved.category || 'Geral',
-        description: saved.description,
-      });
+      if (editingService?.$id || (saved.$id && !saved.$id.startsWith('srv_temp'))) {
+        const idToUpdate = editingService?.$id || saved.$id!;
+        const res = await updateServiceAction(idToUpdate, {
+          name: saved.name || '',
+          price: saved.price || 0,
+          durationMinutes: saved.durationMinutes || 30,
+          unit: saved.unit || 'un',
+          category: saved.category || 'Geral',
+          description: saved.description || '',
+          active: saved.active !== undefined ? saved.active : true,
+        });
 
-      if (res.success) {
-        await loadServices();
+        if (res.success) {
+          await loadServices();
+        } else {
+          alert(`Erro ao atualizar serviço: ${res.error}`);
+        }
       } else {
-        alert(`Erro ao salvar serviço no Appwrite: ${res.error}`);
+        const res = await createServiceAction({
+          name: saved.name || '',
+          price: saved.price || 0,
+          durationMinutes: saved.durationMinutes || 30,
+          unit: saved.unit || 'un',
+          category: saved.category || 'Geral',
+          description: saved.description,
+          active: saved.active !== undefined ? saved.active : true,
+        });
+
+        if (res.success) {
+          await loadServices();
+        } else {
+          alert(`Erro ao criar serviço: ${res.error}`);
+        }
       }
     } catch (err: any) {
       console.error('Erro ao salvar serviço:', err);
-      alert('Ocorreu um erro ao salvar o serviço no Appwrite.');
+      alert('Ocorreu um erro ao salvar o serviço.');
+    }
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      const res = await deleteServiceAction(serviceId);
+      if (res.success) {
+        await loadServices();
+      } else {
+        alert(`Erro ao excluir serviço: ${res.error}`);
+      }
+    } catch (err: any) {
+      console.error('Erro ao excluir serviço:', err);
+      alert('Ocorreu um erro ao excluir o serviço.');
     }
   };
 
@@ -64,10 +104,10 @@ export default function ServicesPage() {
       {/* Title Header */}
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-          Serviços
+          Catálogo de Serviços
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Cadastre e gerencie seus procedimentos e serviços com valores padrão para cobranças rápidas.
+          Cadastre, edite e gerencie seus procedimentos e serviços com valores padrão e duração para agendamentos e cobranças rápidas.
         </p>
       </div>
 
@@ -75,6 +115,7 @@ export default function ServicesPage() {
       <ServiceList
         services={services}
         onEditService={handleEditService}
+        onDeleteService={handleDeleteService}
         onNewService={handleNewService}
       />
 

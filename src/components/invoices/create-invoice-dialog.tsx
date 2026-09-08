@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import { InvoiceDocument, ServiceDocument, ClientDocument } from '@/types/appwrite';
 import { createInvoiceAction } from '@/app/actions/invoices';
 import { fetchServicesAction } from '@/app/actions/services';
@@ -116,14 +117,14 @@ export function CreateInvoiceDialog({
       <DialogContent className="sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/15 text-[#E8622C]">
               <Plus className="h-5 w-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              <DialogTitle className="text-lg font-bold text-[#2B2B2B] dark:text-[#FAF6F2]">
                 Emitir Nova Cobrança
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+              <DialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
                 Gere cobrança PIX com envio automático pelo WhatsApp e integração Focus NF-e.
               </DialogDescription>
             </div>
@@ -133,15 +134,15 @@ export function CreateInvoiceDialog({
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {/* Seleção de Serviço Aprovado */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
               Selecionar Serviço Cadastrado / Aprovado
             </Label>
             <div className="relative">
-              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 z-10" />
               <select
                 value={selectedServiceId}
                 onChange={(e) => handleServiceSelect(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[#2B2B2B] dark:text-[#FAF6F2]"
               >
                 <option value="">-- Escolha um serviço (Preenche preço e descrição) --</option>
                 {services.map((srv) => (
@@ -156,16 +157,16 @@ export function CreateInvoiceDialog({
           {/* Seleção de Cliente ou Digitação Manual */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
                 Nome do Cliente
               </Label>
               {clients.length > 0 ? (
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 z-10" />
                   <select
                     value={selectedClientId}
                     onChange={(e) => handleClientSelect(e.target.value)}
-                    className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 mb-1.5"
+                    className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[#2B2B2B] dark:text-[#FAF6F2] mb-1.5"
                   >
                     <option value="">-- Selecionar Cliente Cadastrado --</option>
                     {clients.map((cli) => (
@@ -186,7 +187,7 @@ export function CreateInvoiceDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
                 CPF / CNPJ
               </Label>
               <Input
@@ -200,11 +201,11 @@ export function CreateInvoiceDialog({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Valor (R$)
+              <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
+                Valor Total (R$)
               </Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                 <Input
                   required
                   type="number"
@@ -218,60 +219,57 @@ export function CreateInvoiceDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
                 Data de Vencimento
               </Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  required
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="pl-9 h-9 text-xs rounded-xl"
-                />
-              </div>
+              <DatePicker
+                required
+                value={dueDate}
+                onChange={(val) => setDueDate(val)}
+                placeholder="DD/MM/AAAA"
+                presets={[
+                  { label: 'Hoje', daysOffset: 0 },
+                  { label: 'Amanhã', daysOffset: 1 },
+                  { label: '+5 dias', daysOffset: 5 },
+                  { label: '+10 dias', daysOffset: 10 },
+                ]}
+                showShortcuts
+              />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              Descrição do Serviço / Produto
+            <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
+              Descrição do Serviço / Procedimento
             </Label>
             <Input
-              placeholder="Ex: Mensalidade Plano Saúde & Estética"
+              placeholder="Ex: Sessão de Fisioterapia Domiciliar"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="h-9 text-xs rounded-xl"
             />
           </div>
 
-          {/* Automações integradas */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3.5 space-y-2 border border-slate-200 dark:border-slate-800">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Automações Ativas
-            </span>
-
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
+          {/* Integrações Automáticas */}
+          <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-[#2B2B2B] dark:text-neutral-300">
               <input
                 type="checkbox"
                 checked={issueNfe}
                 onChange={(e) => setIssueNfe(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-4 w-4 rounded border-neutral-300 text-[#E8622C] focus:ring-[#E8622C]"
               />
-              <FileText className="h-4 w-4 text-blue-500" />
-              <span>Emitir Nota Fiscal (Focus NFe) automaticamente na confirmação</span>
+              <span>Emitir Nota Fiscal (Focus NF-e) automaticamente ao receber</span>
             </label>
 
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-[#2B2B2B] dark:text-neutral-300">
               <input
                 type="checkbox"
                 checked={sendWhatsApp}
                 onChange={(e) => setSendWhatsApp(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-4 w-4 rounded border-neutral-300 text-[#E8622C] focus:ring-[#E8622C]"
               />
-              <Send className="h-4 w-4 text-emerald-500" />
-              <span>Enviar QR Code PIX imediatamente via WhatsApp (Evolution API)</span>
+              <span>Disparar QR Code & Chave PIX no WhatsApp do Cliente</span>
             </label>
           </div>
 
@@ -288,10 +286,10 @@ export function CreateInvoiceDialog({
             <Button
               type="submit"
               disabled={loading}
-              className="h-9 text-xs gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20"
+              className="h-9 text-xs gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all"
             >
               {loading ? (
-                <span>Gerando Cobrança...</span>
+                <span>Emitindo...</span>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />

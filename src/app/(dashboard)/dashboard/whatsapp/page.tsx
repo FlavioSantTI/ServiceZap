@@ -1,7 +1,9 @@
+import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { getWhatsAppInstanceAction } from '@/app/actions/whatsapp';
 import { fetchClientsAction } from '@/app/actions/clients';
 import { WhatsAppChatInterface } from '@/components/whatsapp/whatsapp-chat-interface';
+import { Loader2 } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'WhatsApp & Mensagens | ServiceZap',
@@ -28,10 +30,16 @@ export default async function WhatsAppDashboardPage() {
         </p>
       </div>
 
-      <WhatsAppChatInterface
-        initialInstance={instance}
-        clients={clients}
-      />
+      <Suspense fallback={
+        <div className="h-[600px] flex items-center justify-center border border-slate-800 rounded-2xl bg-slate-900/50">
+          <Loader2 className="w-8 h-8 text-[#E8622C] animate-spin" />
+        </div>
+      }>
+        <WhatsAppChatInterface
+          initialInstance={instance}
+          clients={clients}
+        />
+      </Suspense>
     </div>
   );
 }

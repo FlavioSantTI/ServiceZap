@@ -55,7 +55,7 @@ export function ClientDetailsModal({
         <DialogHeader>
           <div className="flex items-center justify-between pr-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 font-bold text-lg">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/10 text-[#E8622C] font-bold text-lg">
                 {client.name?.charAt(0) || 'C'}
               </div>
               <div>
@@ -68,7 +68,7 @@ export function ClientDetailsModal({
               </div>
             </div>
 
-            <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+            <Badge className="bg-orange-500/15 text-[#E8622C] border-orange-500/30">
               {client.status === 'active' ? 'Cliente Ativo' : client.status === 'lead' ? 'Lead' : 'Inativo'}
             </Badge>
           </div>
@@ -79,7 +79,7 @@ export function ClientDetailsModal({
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <DollarSign className="h-4 w-4 text-emerald-500" />
+                <DollarSign className="h-4 w-4 text-[#E8622C]" />
                 <span>LTV (Total Pago)</span>
               </div>
               <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">
@@ -89,7 +89,7 @@ export function ClientDetailsModal({
 
             <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <Receipt className="h-4 w-4 text-blue-500" />
+                <Receipt className="h-4 w-4 text-[#E8622C]" />
                 <span>Histórico de Faturas</span>
               </div>
               <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">
@@ -146,7 +146,7 @@ export function ClientDetailsModal({
                       <p className="font-extrabold text-slate-900 dark:text-slate-100">
                         R$ {inv.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </p>
-                      <span className="text-[10px] uppercase font-bold text-emerald-500">
+                      <span className="text-[10px] uppercase font-bold text-[#E8622C]">
                         {inv.status}
                       </span>
                     </div>
@@ -162,7 +162,7 @@ export function ClientDetailsModal({
               onClick={handleWhatsAppClick}
               variant="outline"
               size="sm"
-              className="h-9 gap-2 text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+              className="h-9 gap-2 text-xs border-orange-500/30 text-[#E8622C] hover:bg-orange-500/10"
             >
               <Send className="h-4 w-4" />
               <span>Abrir WhatsApp</span>
@@ -174,7 +174,7 @@ export function ClientDetailsModal({
                 if (onNewChargeForClient) onNewChargeForClient(client);
               }}
               size="sm"
-              className="h-9 gap-2 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20"
+              className="h-9 gap-2 text-xs bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs"
             >
               <Plus className="h-4 w-4" />
               <span>Emitir Cobrança PIX</span>

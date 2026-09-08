@@ -22,7 +22,56 @@ export interface WebhookMessageUpsertPayload {
   fileName?: string;
 }
 
+// Cache em memória de WAMIDs para verificação ultrarrápida O(1) sem bater no Appwrite a cada mensagem
+const inMemoryWamidCache = new Set<string>();
+const appSentWamidsCache = new Map<string, number>();
+
 export class WhatsAppSyncService {
+  /**
+   * Registra um WAMID de mensagem enviada intencionalmente pelo sistema
+   */
+  static registerAppSentWamid(wamid: string): void {
+    if (!wamid) return;
+    appSentWamidsCache.set(wamid, Date.now());
+    inMemoryWamidCache.add(wamid);
+
+    // Limpeza de itens mais antigos que 3 minutos
+    const now = Date.now();
+    for (const [id, time] of appSentWamidsCache.entries()) {
+      if (now - time > 180000) {
+        appSentWamidsCache.delete(id);
+      }
+    }
+  }
+
+  /**
+   * Checa se o WAMID foi enviado pelo próprio app recentemente
+   */
+  static isAppSentWamid(wamid: string): boolean {
+    if (!wamid) return false;
+    return appSentWamidsCache.has(wamid);
+  }
+
+  /**
+   * Confirma entrega de mensagem originada pelo app
+   */
+  static async confirmAppMessageSent(wamid: string): Promise<void> {
+    if (!wamid) return;
+    try {
+      const existing = await this.findMessageByWamid(wamid);
+      if (existing && existing.status !== 'sent') {
+        const { databases } = await createAdminClient();
+        await databases.updateDocument(
+          DATABASE_ID,
+          MESSAGES_COLLECTION_ID,
+          existing.$id,
+          { status: 'sent' as MessageStatus }
+        );
+      }
+    } catch {
+      // silencioso
+    }
+  }
   /**
    * Garante que um número de telefone possua cadastro no CRM (auto-cadastro de novos contatos)
    */
@@ -107,17 +156,29 @@ export class WhatsAppSyncService {
    * Registra mensagem recebida de cliente (Inbound) e auto-cadastra contato no CRM se necessário
    */
   static async createInboundMessage(payload: WebhookMessageUpsertPayload): Promise<MessageDocument> {
-    const { databases } = await createAdminClient();
     const cleanPhone = sanitizeWhatsAppJid(payload.phone);
 
-    // Auto-cadastra o cliente no CRM se o número ainda não existir
-    await this.ensureClientExistsForPhone(cleanPhone, payload.pushName);
-
-    // Proteção contra duplicação de inbound
-    const existing = await this.findMessageByWamid(payload.wamid);
-    if (existing) {
-      return existing;
+    // 1. Checagem em memória ultra-rápida (0ms) contra duplicatas
+    if (payload.wamid) {
+      if (inMemoryWamidCache.has(payload.wamid)) {
+        return { $id: `cached_${payload.wamid}`, whatsapp_message_id: payload.wamid } as any;
+      }
+      inMemoryWamidCache.add(payload.wamid);
+      if (inMemoryWamidCache.size > 3000) {
+        // Limpeza suave do cache mantendo os mais recentes
+        const iterator = inMemoryWamidCache.values();
+        for (let i = 0; i < 500; i++) {
+          const val = iterator.next().value;
+          if (val) inMemoryWamidCache.delete(val);
+        }
+      }
     }
+
+    // 2. Auto-cadastro executado em background sem travar o pipeline da mensagem
+    this.ensureClientExistsForPhone(cleanPhone, payload.pushName).catch(() => {});
+
+    // 3. Gravação direta no Appwrite sem atrasos
+    const { databases } = await createAdminClient();
 
     try {
       return await databases.createDocument<MessageDocument>(
@@ -176,6 +237,9 @@ export class WhatsAppSyncService {
     document: MessageDocument;
   }> {
     const { databases } = await createAdminClient();
+    const cleanPhone = sanitizeWhatsAppJid(payload.phone);
+
+    // 1. Busca por WAMID direto
     const existing = await this.findMessageByWamid(payload.wamid);
 
     if (existing) {
@@ -196,7 +260,7 @@ export class WhatsAppSyncService {
           action: 'updated_existing',
           document: updated,
         };
-      } catch (upErr) {
+      } catch {
         const updatedFallback = await databases.updateDocument<MessageDocument>(
           DATABASE_ID,
           MESSAGES_COLLECTION_ID,
@@ -213,8 +277,61 @@ export class WhatsAppSyncService {
       }
     }
 
-    // Operador enviou mensagem pelo celular (WhatsApp Nativo)
-    const cleanPhone = sanitizeWhatsAppJid(payload.phone);
+    // 2. Se for WAMID registrado como enviado pelo app OU se existir mensagem recente do app aguardando WAMID real:
+    // Evita a race condition onde o echo do Baileys chega antes de o route.ts/action terminar o databases.updateDocument
+    try {
+      const recentOutbounds = await databases.listDocuments<MessageDocument>(
+        DATABASE_ID,
+        MESSAGES_COLLECTION_ID,
+        [
+          Query.equal('phone', cleanPhone),
+          Query.equal('direction', 'outbound'),
+          Query.orderDesc('created_at'),
+          Query.limit(5),
+        ]
+      );
+
+      const now = Date.now();
+      const matchingPending = recentOutbounds.documents.find((doc) => {
+        const docTime = new Date(doc.created_at || doc.$createdAt).getTime();
+        const isRecent = Math.abs(now - docTime) < 30000; // últimos 30 segundos
+        const isAppOrigin = doc.origin === 'app_ui' || doc.whatsapp_message_id?.startsWith('app_');
+        return isRecent && (isAppOrigin || doc.status === 'pending');
+      });
+
+      if (matchingPending) {
+        console.log(`🔗 [WhatsAppSyncService] Reconciliando eco Baileys com mensagem pendente do App: ${matchingPending.$id} -> WAMID: ${payload.wamid}`);
+        const updated = await databases.updateDocument<MessageDocument>(
+          DATABASE_ID,
+          MESSAGES_COLLECTION_ID,
+          matchingPending.$id,
+          {
+            status: 'sent' as MessageStatus,
+            whatsapp_message_id: payload.wamid,
+            ...(payload.mediaType && !matchingPending.mediaType ? { mediaType: payload.mediaType } : {}),
+            ...(payload.mediaUrl && !matchingPending.mediaUrl ? { mediaUrl: payload.mediaUrl } : {}),
+          }
+        );
+
+        return {
+          action: 'updated_existing',
+          document: updated,
+        };
+      }
+    } catch (reconcileErr) {
+      console.warn('[WhatsAppSyncService] Aviso ao reconciliar mensagem recente:', reconcileErr);
+    }
+
+    // 3. Se o WAMID já foi marcado pelo motor como enviado pelo app, não duplica como celular nativo
+    if (this.isAppSentWamid(payload.wamid)) {
+      console.log(`⏩ [WhatsAppSyncService] WAMID ${payload.wamid} marcado como appSent, ignorando criação nativa duplicada.`);
+      return {
+        action: 'updated_existing',
+        document: { $id: `app_${payload.wamid}`, whatsapp_message_id: payload.wamid } as any,
+      };
+    }
+
+    // 4. Operador enviou mensagem pelo celular (WhatsApp Nativo)
     try {
       const created = await databases.createDocument<MessageDocument>(
         DATABASE_ID,

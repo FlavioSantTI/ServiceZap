@@ -5,6 +5,7 @@ import makeWASocket, {
   proto,
   Browsers,
   downloadMediaMessage,
+  downloadContentFromMessage,
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
@@ -14,6 +15,7 @@ import { WhatsAppStatus } from '@/types/appwrite';
 import { WhatsAppSyncService, sanitizeWhatsAppJid } from '@/lib/services/whatsappSyncService';
 import { createAdminClient } from '@/lib/appwrite/server';
 import { saveMediaBuffer } from '@/lib/utils/mediaStorage';
+import { convertToWhatsAppPttOgg, generateVideoThumbnail } from '@/lib/utils/audioConverter';
 
 const SESSIONS_DIR = path.resolve(process.cwd(), '.whatsapp_sessions');
 const DEFAULT_SESSION_NAME = process.env.WHATSAPP_SESSION_NAME || 'servicezap_main';
@@ -70,6 +72,9 @@ export class EmbeddedWhatsAppEngine {
       syncFullHistory: false,
       generateHighQualityLinkPreview: true,
       markOnlineOnConnect: true,
+      defaultQueryTimeoutMs: 180_000,
+      connectTimeoutMs: 60_000,
+      keepAliveIntervalMs: 25_000,
     });
 
     this.sock = sock;
@@ -235,6 +240,8 @@ export class EmbeddedWhatsAppEngine {
       if (mediaType) {
         try {
           let buffer: Buffer | null = null;
+          
+          // Camada 1: downloadMediaMessage com msg completa
           try {
             buffer = await downloadMediaMessage(
               msg as any,
@@ -245,23 +252,39 @@ export class EmbeddedWhatsAppEngine {
                 reuploadRequest: this.sock?.updateMediaMessage ? (this.sock as any).updateMediaMessage.bind(this.sock) : undefined,
               } as any
             );
-          } catch {
-            // Fallback com mensagem unwrapped para envelopes aninhados
-            buffer = await downloadMediaMessage(
-              { key: msg.key, message: rawMsg } as any,
-              'buffer',
-              {},
-              {
-                logger: pino({ level: 'silent' }),
-                reuploadRequest: this.sock?.updateMediaMessage ? (this.sock as any).updateMediaMessage.bind(this.sock) : undefined,
-              } as any
-            );
+          } catch (e1) {
+            // Camada 2: downloadMediaMessage com mensagem desembrulhada
+            try {
+              buffer = await downloadMediaMessage(
+                { key: msg.key, message: rawMsg } as any,
+                'buffer',
+                {},
+                {
+                  logger: pino({ level: 'silent' }),
+                  reuploadRequest: this.sock?.updateMediaMessage ? (this.sock as any).updateMediaMessage.bind(this.sock) : undefined,
+                } as any
+              );
+            } catch (e2) {
+              // Camada 3: downloadContentFromMessage direto no objeto de mídia (imune a wrappers)
+              const mediaObj = imgMsg || vidMsg || audMsg || docMsg || stickerMsg;
+              const baileysType = stickerMsg ? 'sticker' : (mediaType as any);
+              if (mediaObj && baileysType) {
+                const stream = await downloadContentFromMessage(mediaObj as any, baileysType);
+                const chunks: Buffer[] = [];
+                for await (const chunk of stream) {
+                  chunks.push(chunk);
+                }
+                buffer = Buffer.concat(chunks);
+              }
+            }
           }
 
           if (buffer && buffer.length > 0) {
             const saved = await saveMediaBuffer(buffer, mimeType || 'application/octet-stream', fileName);
             mediaUrl = saved.mediaUrl;
-            console.log(`📸 [EmbeddedWhatsApp] Mídia recebida e salva com sucesso em disk local: ${mediaUrl}`);
+            console.log(`📸 [EmbeddedWhatsApp] Mídia (${mediaType}) recebida e salva com sucesso em disk local (${buffer.length} bytes): ${mediaUrl}`);
+          } else {
+            console.warn(`⚠️ [EmbeddedWhatsApp] Mídia (${mediaType}) detectada, mas buffer retornou vazio.`);
           }
         } catch (mediaErr) {
           console.warn('[EmbeddedWhatsApp] Erro ao baixar mídia recebida:', mediaErr);
@@ -300,7 +323,15 @@ export class EmbeddedWhatsAppEngine {
         // Inbound: gravado no Appwrite
         await WhatsAppSyncService.createInboundMessage(payload);
       } else {
-        // Outbound: resolve de-duplicação e eco de celular nativo
+        // Se a mensagem foi enviada intencionalmente pelo próprio app recentemente,
+        // apenas confirma o status 'sent' sem recriar o documento no Appwrite
+        if (WhatsAppSyncService.isAppSentWamid(wamid)) {
+          console.log(`⏩ [EmbeddedWhatsApp] Eco Baileys ignorado para mensagem do app (WAMID: ${wamid})`);
+          await WhatsAppSyncService.confirmAppMessageSent(wamid);
+          return;
+        }
+
+        // Outbound de celular nativo: resolve de-duplicação e eco
         await WhatsAppSyncService.handleOutboundEcho(payload);
       }
     } catch (error) {
@@ -488,6 +519,7 @@ export class EmbeddedWhatsAppEngine {
       console.log(`📤 [EmbeddedWhatsApp] Disparando mensagem Baileys para: ${targetJid} | Texto: "${text}"`);
       const sent = await sock.sendMessage(targetJid, { text });
       const wamid = sent?.key?.id || `app_${Date.now()}`;
+      WhatsAppSyncService.registerAppSentWamid(wamid);
       console.log(`✅ [EmbeddedWhatsApp] Mensagem entregue com sucesso! WAMID: ${wamid}`);
       return { wamid };
     } catch (err: any) {
@@ -502,6 +534,7 @@ export class EmbeddedWhatsAppEngine {
 
       const sent = await sock.sendMessage(altJid, { text });
       const wamid = sent?.key?.id || `app_${Date.now()}`;
+      WhatsAppSyncService.registerAppSentWamid(wamid);
       console.log(`✅ [EmbeddedWhatsApp] Mensagem entregue no JID alternativo! WAMID: ${wamid}`);
       return { wamid };
     }
@@ -532,16 +565,49 @@ export class EmbeddedWhatsAppEngine {
         mimetype: params.mimetype || 'image/jpeg',
       };
     } else if (params.mediaType === 'video') {
-      contentPayload = {
-        video: params.mediaBuffer,
-        caption: params.caption || '',
-        mimetype: params.mimetype || 'video/mp4',
-      };
+      const isLargeVideo = params.mediaBuffer.length > 16 * 1024 * 1024; // > 16MB
+      let thumbBuffer: Buffer | undefined = undefined;
+      try {
+        thumbBuffer = await generateVideoThumbnail(params.mediaBuffer);
+      } catch (thumbErr) {
+        console.warn('[EmbeddedWhatsApp] Não foi possível gerar thumbnail de vídeo:', thumbErr);
+      }
+
+      if (isLargeVideo) {
+        // Vídeos longos ou > 16MB são enviados com container de documento MP4
+        // Esse padrão suporta até 2GB no WhatsApp sem restrições de transcodificação da Meta
+        console.log(`📦 [EmbeddedWhatsApp] Vídeo grande/longo (${(params.mediaBuffer.length / (1024 * 1024)).toFixed(1)}MB). Enviando como documento de vídeo de alta capacidade.`);
+        contentPayload = {
+          document: params.mediaBuffer,
+          caption: params.caption || '',
+          fileName: params.fileName || 'video.mp4',
+          mimetype: params.mimetype || 'video/mp4',
+          ...(thumbBuffer ? { jpegThumbnail: thumbBuffer } : {}),
+        };
+      } else {
+        contentPayload = {
+          video: params.mediaBuffer,
+          caption: params.caption || '',
+          mimetype: params.mimetype || 'video/mp4',
+          ...(thumbBuffer ? { jpegThumbnail: thumbBuffer } : {}),
+        };
+      }
     } else if (params.mediaType === 'audio') {
+      // Converte áudio (WebM, WAV, MP3, etc.) para OGG Opus mono 48kHz (padrão oficial do WhatsApp PTT)
+      let audioBuffer = params.mediaBuffer;
+      let audioMime = 'audio/ogg; codecs=opus';
+      try {
+        const converted = await convertToWhatsAppPttOgg(params.mediaBuffer);
+        audioBuffer = converted.buffer;
+        audioMime = converted.mimeType;
+      } catch (convErr) {
+        console.warn('[EmbeddedWhatsApp] Erro convertendo áudio PTT com ffmpeg:', convErr);
+      }
+
       contentPayload = {
-        audio: params.mediaBuffer,
+        audio: audioBuffer,
         ptt: true,
-        mimetype: params.mimetype || 'audio/mp4',
+        mimetype: audioMime,
       };
     } else if (params.mediaType === 'document') {
       contentPayload = {
@@ -552,10 +618,32 @@ export class EmbeddedWhatsAppEngine {
       };
     }
 
+    // Helper resiliente de envio com fallback automático de vídeo nativo -> documento de vídeo
+    const sendWithFallback = async (jid: string, payload: any) => {
+      const sendOptions = { mediaUploadTimeoutMs: 300_000 };
+      try {
+        return await sock.sendMessage(jid, payload, sendOptions);
+      } catch (sendErr: any) {
+        if (params.mediaType === 'video' && !payload.document) {
+          console.warn('⚠️ [EmbeddedWhatsApp] Envio como videoMessage falhou, ativando fallback automático para documento MP4...', sendErr?.message);
+          const fallbackDocPayload = {
+            document: params.mediaBuffer,
+            caption: params.caption || '',
+            fileName: params.fileName || 'video.mp4',
+            mimetype: params.mimetype || 'video/mp4',
+            ...(payload.jpegThumbnail ? { jpegThumbnail: payload.jpegThumbnail } : {}),
+          };
+          return await sock.sendMessage(jid, fallbackDocPayload, sendOptions);
+        }
+        throw sendErr;
+      }
+    };
+
     try {
       console.log(`📤 [EmbeddedWhatsApp] Disparando mídia (${params.mediaType}) Baileys para: ${targetJid}`);
-      const sent = await sock.sendMessage(targetJid, contentPayload);
+      const sent = await sendWithFallback(targetJid, contentPayload);
       const wamid = sent?.key?.id || `app_${Date.now()}`;
+      WhatsAppSyncService.registerAppSentWamid(wamid);
       console.log(`✅ [EmbeddedWhatsApp] Mídia entregue com sucesso! WAMID: ${wamid}`);
       return { wamid };
     } catch (err: any) {
@@ -567,8 +655,9 @@ export class EmbeddedWhatsAppEngine {
         altJid = `${cleanPhone.slice(0, 4)}9${cleanPhone.slice(4)}@s.whatsapp.net`;
       }
 
-      const sent = await sock.sendMessage(altJid, contentPayload);
+      const sent = await sendWithFallback(altJid, contentPayload);
       const wamid = sent?.key?.id || `app_${Date.now()}`;
+      WhatsAppSyncService.registerAppSentWamid(wamid);
       console.log(`✅ [EmbeddedWhatsApp] Mídia entregue no JID alternativo! WAMID: ${wamid}`);
       return { wamid };
     }

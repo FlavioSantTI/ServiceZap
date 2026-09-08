@@ -31,6 +31,7 @@ export function ServiceDialog({
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [durationMinutes, setDurationMinutes] = useState('60');
+  const [unit, setUnit] = useState('un');
   const [categories, setCategories] = useState<string[]>([
     'Procedimentos',
     'Avaliação',
@@ -46,11 +47,23 @@ export function ServiceDialog({
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const unitsList = [
+    { value: 'un', label: 'Unidade (un)' },
+    { value: 'hora', label: 'Hora / Horas (hr)' },
+    { value: 'kg', label: 'Quilo (kg)' },
+    { value: 'metro', label: 'Metro Linear (m)' },
+    { value: 'm²', label: 'Metro Quadrado (m²)' },
+    { value: 'diária', label: 'Diária (dia)' },
+    { value: 'sessão', label: 'Sessão / Atendimento' },
+    { value: 'serviço', label: 'Serviço Global' },
+  ];
+
   useEffect(() => {
     if (serviceToEdit) {
       setName(serviceToEdit.name || '');
       setPrice(serviceToEdit.price ? serviceToEdit.price.toString() : '');
       setDurationMinutes(serviceToEdit.durationMinutes ? serviceToEdit.durationMinutes.toString() : '60');
+      setUnit(serviceToEdit.unit || 'un');
       const currentCat = serviceToEdit.category || 'Procedimentos';
       setCategory(currentCat);
       if (currentCat && !categories.includes(currentCat)) {
@@ -62,6 +75,7 @@ export function ServiceDialog({
       setName('');
       setPrice('');
       setDurationMinutes('60');
+      setUnit('un');
       setCategory(categories[0] || 'Procedimentos');
       setDescription('');
       setActive(true);
@@ -104,6 +118,7 @@ export function ServiceDialog({
         name,
         price: parseFloat(price) || 0,
         durationMinutes: parseInt(durationMinutes, 10) || 30,
+        unit: unit.trim() || 'un',
         category,
         description,
         active,
@@ -120,17 +135,17 @@ export function ServiceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/15 text-[#E8622C] border border-orange-500/20">
               <Plus className="h-5 w-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 {serviceToEdit ? 'Editar Serviço' : 'Novo Serviço'}
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Cadastre o serviço com preço padrão e duração para agilizar a emissão de cobranças.
               </DialogDescription>
             </div>
@@ -139,7 +154,7 @@ export function ServiceDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               Serviço
             </Label>
             <Input
@@ -147,17 +162,17 @@ export function ServiceDialog({
               placeholder="Ex: Limpeza de Pele Profunda"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-9 text-xs rounded-xl"
+              className="h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-[#E8622C]"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 Preço Padrão (R$)
               </Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                 <Input
                   required
                   type="number"
@@ -165,24 +180,41 @@ export function ServiceDialog({
                   placeholder="0,00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="pl-9 h-9 text-xs rounded-xl"
+                  className="pl-9 h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-[#E8622C]"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Unidade de Medida
+              </Label>
+              <select
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                className="w-full h-9 px-3 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#E8622C]"
+              >
+                {unitsList.map((u) => (
+                  <option key={u.value} value={u.value}>
+                    {u.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 Duração (Minutos)
               </Label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                 <Input
                   required
                   type="number"
                   placeholder="60"
                   value={durationMinutes}
                   onChange={(e) => setDurationMinutes(e.target.value)}
-                  className="pl-9 h-9 text-xs rounded-xl"
+                  className="pl-9 h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-[#E8622C]"
                 />
               </div>
             </div>
@@ -190,14 +222,14 @@ export function ServiceDialog({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 Categoria
               </Label>
               {!isAddingNewCategory && (
                 <button
                   type="button"
                   onClick={() => setIsAddingNewCategory(true)}
-                  className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-emerald-500 transition-colors"
+                  className="flex items-center gap-1 text-[11px] font-bold text-[#E8622C] hover:opacity-80 transition-colors"
                 >
                   <Plus className="h-3 w-3" />
                   <span>Nova Categoria</span>
@@ -218,13 +250,13 @@ export function ServiceDialog({
                       handleAddCategory();
                     }
                   }}
-                  className="h-9 text-xs rounded-xl flex-1"
+                  className="h-9 text-xs rounded-xl flex-1 border-zinc-200 dark:border-zinc-800 focus-visible:ring-[#E8622C]"
                 />
                 <Button
                   type="button"
                   onClick={handleAddCategory}
                   size="sm"
-                  className="h-9 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs"
+                  className="h-9 px-3 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl text-xs shadow-md shadow-orange-500/20"
                 >
                   Adicionar
                 </Button>
@@ -236,7 +268,7 @@ export function ServiceDialog({
                     setNewCategoryInput('');
                   }}
                   size="sm"
-                  className="h-9 px-2 text-xs rounded-xl text-slate-400"
+                  className="h-9 px-2 text-xs rounded-xl text-zinc-400"
                 >
                   Cancelar
                 </Button>
@@ -244,11 +276,11 @@ export function ServiceDialog({
             ) : (
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 z-10" />
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                    className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#E8622C]"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -273,24 +305,24 @@ export function ServiceDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               Descrição Detalhada
             </Label>
             <Input
               placeholder="Descrição exibida no comprovante PIX e corpo da NF-e"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="h-9 text-xs rounded-xl"
+              className="h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-[#E8622C]"
             />
           </div>
 
           <div className="flex items-center gap-2.5 pt-1">
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-700 dark:text-zinc-300">
               <input
                 type="checkbox"
                 checked={active}
                 onChange={(e) => setActive(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-4 w-4 rounded border-zinc-300 text-[#E8622C] focus:ring-[#E8622C] accent-[#E8622C]"
               />
               <span>Serviço ativo para novas cobranças</span>
             </label>
@@ -301,7 +333,7 @@ export function ServiceDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-9 text-xs rounded-xl"
+              className="h-9 text-xs rounded-xl border-zinc-200 dark:border-zinc-800"
             >
               Cancelar
             </Button>
@@ -309,7 +341,7 @@ export function ServiceDialog({
             <Button
               type="submit"
               disabled={loading}
-              className="h-9 text-xs gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20"
+              className="h-9 text-xs gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-md shadow-orange-500/20"
             >
               {loading ? (
                 <span>Salvando...</span>

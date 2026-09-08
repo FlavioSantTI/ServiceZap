@@ -11,7 +11,6 @@ import {
   Trash2,
   CheckCircle2,
   XCircle,
-  MoreHorizontal,
 } from 'lucide-react';
 import {
   Table,
@@ -24,23 +23,21 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ServiceDocument } from '@/types/appwrite';
 
 interface ServiceListProps {
   services: Partial<ServiceDocument>[];
   onEditService: (service: Partial<ServiceDocument>) => void;
+  onDeleteService?: (serviceId: string) => void;
   onNewService: () => void;
 }
 
-export function ServiceList({ services, onEditService, onNewService }: ServiceListProps) {
+export function ServiceList({
+  services,
+  onEditService,
+  onDeleteService,
+  onNewService,
+}: ServiceListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
@@ -55,6 +52,15 @@ export function ServiceList({ services, onEditService, onNewService }: ServiceLi
 
     return matchesSearch && matchesCategory;
   });
+
+  const handleDelete = (srv: Partial<ServiceDocument>) => {
+    if (!srv.$id) return;
+    if (confirm(`Tem certeza que deseja excluir o serviço "${srv.name}" do catálogo?`)) {
+      if (onDeleteService) {
+        onDeleteService(srv.$id);
+      }
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -104,7 +110,7 @@ export function ServiceList({ services, onEditService, onNewService }: ServiceLi
         <Button
           onClick={onNewService}
           size="sm"
-          className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20 w-full sm:w-auto"
+          className="h-9 gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Novo Serviço</span>
@@ -127,8 +133,12 @@ export function ServiceList({ services, onEditService, onNewService }: ServiceLi
           <TableBody>
             {filteredServices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-xs text-slate-400">
-                  Nenhum serviço encontrado no catálogo.
+                <TableCell colSpan={6} className="text-center py-12 text-xs text-slate-400">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Tag className="h-8 w-8 text-slate-300 dark:text-slate-700" />
+                    <p className="font-semibold text-slate-600 dark:text-slate-400">Nenhum serviço encontrado no catálogo.</p>
+                    <p className="text-[11px] text-slate-400">Clique em &ldquo;Novo Serviço&rdquo; acima para cadastrar seu primeiro item.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -147,7 +157,10 @@ export function ServiceList({ services, onEditService, onNewService }: ServiceLi
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs font-extrabold text-slate-900 dark:text-slate-100">
-                    R$ {srv.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    <div>
+                      <span>R$ {srv.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <span className="text-[11px] font-normal text-slate-400 ml-1">/ {srv.unit || 'un'}</span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-xs text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-1">
@@ -157,7 +170,7 @@ export function ServiceList({ services, onEditService, onNewService }: ServiceLi
                   </TableCell>
                   <TableCell>
                     {srv.active ? (
-                      <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1 hover:bg-emerald-500/20">
+                      <Badge className="bg-orange-500/15 text-[#E8622C] border-orange-500/30 gap-1 hover:bg-orange-500/20">
                         <CheckCircle2 className="h-3 w-3" />
                         <span>Ativo</span>
                       </Badge>
@@ -178,6 +191,15 @@ export function ServiceList({ services, onEditService, onNewService }: ServiceLi
                         title="Editar Serviço"
                       >
                         <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(srv)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-500/10 dark:hover:bg-red-500/20"
+                        title="Excluir Serviço"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

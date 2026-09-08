@@ -21,6 +21,7 @@ export default function WorkOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<Partial<WorkOrderDocument> | null>(null);
+  const [editingWorkOrder, setEditingWorkOrder] = useState<Partial<WorkOrderDocument> | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -44,6 +45,16 @@ export default function WorkOrdersPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const handleOpenCreate = () => {
+    setEditingWorkOrder(null);
+    setIsCreateOpen(true);
+  };
+
+  const handleOpenEdit = (wo: Partial<WorkOrderDocument>) => {
+    setEditingWorkOrder(wo);
+    setIsCreateOpen(true);
+  };
 
   // Métricas Financeiras / Quantidades
   const totalQuotesValue = workOrders
@@ -84,9 +95,9 @@ export default function WorkOrdersPage() {
           </Button>
 
           <Button
-            onClick={() => setIsCreateOpen(true)}
+            onClick={handleOpenCreate}
             size="sm"
-            className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20"
+            className="h-9 gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs"
           >
             <Plus className="h-4 w-4" />
             <span>Novo Orçamento / O.S.</span>
@@ -115,14 +126,14 @@ export default function WorkOrdersPage() {
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+              <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
                 O.S. em Execução
               </p>
-              <p className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">
+              <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">
                 {activeOSCount}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-[#E8622C]">
               <Clock className="h-5 w-5" />
             </div>
           </CardContent>
@@ -131,14 +142,14 @@ export default function WorkOrdersPage() {
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+              <p className="text-[11px] font-bold text-[#E8622C] uppercase tracking-wider">
                 Prontas p/ Cobrança PIX
               </p>
-              <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+              <p className="text-xl font-extrabold text-[#E8622C] mt-1">
                 {readyToBillCount}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-[#E8622C]">
               <Zap className="h-5 w-5" />
             </div>
           </CardContent>
@@ -149,15 +160,20 @@ export default function WorkOrdersPage() {
       <WorkOrdersTable
         workOrders={workOrders}
         onSelectWorkOrder={(wo) => setSelectedWorkOrder(wo)}
+        onEditWorkOrder={handleOpenEdit}
         onRefresh={loadData}
       />
 
       {/* Modais */}
       <CreateWorkOrderDialog
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) setEditingWorkOrder(null);
+        }}
         clients={clients}
         services={services}
+        workOrderToEdit={editingWorkOrder}
         onWorkOrderCreated={loadData}
       />
 
@@ -165,6 +181,7 @@ export default function WorkOrdersPage() {
         open={!!selectedWorkOrder}
         onOpenChange={(open) => !open && setSelectedWorkOrder(null)}
         workOrder={selectedWorkOrder}
+        onEditWorkOrder={handleOpenEdit}
         onUpdated={() => {
           loadData();
           setSelectedWorkOrder(null);

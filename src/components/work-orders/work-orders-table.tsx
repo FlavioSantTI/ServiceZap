@@ -41,12 +41,14 @@ import {
 interface WorkOrdersTableProps {
   workOrders: Partial<WorkOrderDocument>[];
   onSelectWorkOrder: (wo: Partial<WorkOrderDocument>) => void;
+  onEditWorkOrder: (wo: Partial<WorkOrderDocument>) => void;
   onRefresh: () => void;
 }
 
 export function WorkOrdersTable({
   workOrders,
   onSelectWorkOrder,
+  onEditWorkOrder,
   onRefresh,
 }: WorkOrdersTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,33 +114,45 @@ export function WorkOrdersTable({
 
   const getStatusBadge = (status?: string, type?: string) => {
     switch (status) {
-      case 'approved':
-      case 'completed':
+      case 'quote_sent':
         return (
-          <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1">
+          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 gap-1 font-semibold">
+            <FileText className="h-3 w-3" />
+            <span>Proposta Enviada</span>
+          </Badge>
+        );
+      case 'approved':
+        return (
+          <Badge className="bg-orange-500/15 text-[#E8622C] dark:text-[#F0806B] border-orange-500/30 gap-1 font-semibold">
             <CheckCircle2 className="h-3 w-3" />
-            <span>{status === 'approved' ? 'Aprovado' : 'Concluído'}</span>
+            <span>Aprovada</span>
           </Badge>
         );
       case 'in_execution':
         return (
-          <Badge className="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30 gap-1">
+          <Badge className="bg-orange-600/15 text-orange-600 dark:text-orange-400 border-orange-600/30 gap-1 font-semibold">
             <Clock className="h-3 w-3" />
             <span>Em Execução</span>
           </Badge>
         );
-      case 'billed':
+      case 'completed':
         return (
-          <Badge className="bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 gap-1">
-            <Zap className="h-3 w-3" />
-            <span>Faturado (PIX)</span>
+          <Badge className="bg-orange-500/20 text-[#E8622C] dark:text-[#F0806B] border-orange-500/40 gap-1 font-semibold">
+            <CheckCircle2 className="h-3 w-3" />
+            <span>Concluída</span>
           </Badge>
         );
-      case 'quote_sent':
+      case 'billed':
         return (
-          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1">
-            <FileText className="h-3 w-3" />
-            <span>Proposta Enviada</span>
+          <Badge className="bg-neutral-800 text-neutral-200 border-neutral-700 gap-1 font-semibold">
+            <Zap className="h-3 w-3 text-orange-400" />
+            <span>Faturada / Cobrança</span>
+          </Badge>
+        );
+      case 'rejected':
+        return (
+          <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 gap-1 font-semibold">
+            <span>Recusada</span>
           </Badge>
         );
       default:
@@ -151,26 +165,26 @@ export function WorkOrdersTable({
       {/* Table Filters */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
           <Input
             placeholder="Buscar por código, cliente ou serviço..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-9 text-xs rounded-xl"
+            className="pl-9 h-9 text-xs rounded-xl bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-            <Filter className="h-3.5 w-3.5 text-slate-400 ml-2" />
+          <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
+            <Filter className="h-3.5 w-3.5 text-neutral-400 ml-2" />
             {(['all', 'quote', 'work_order'] as const).map((tp) => (
               <button
                 key={tp}
                 onClick={() => setTypeFilter(tp)}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                   typeFilter === tp
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm font-bold'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-white dark:bg-neutral-800 text-[#E8622C] shadow-sm font-bold'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
                 }`}
               >
                 {tp === 'all'
@@ -185,7 +199,7 @@ export function WorkOrdersTable({
       </div>
 
       {/* Main Table */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm">
         <Table>
           <TableHeader className="bg-slate-50/80 dark:bg-slate-950/60">
             <TableRow>
@@ -264,33 +278,84 @@ export function WorkOrdersTable({
                             Ver Detalhes
                           </DropdownMenuItem>
 
+                          <DropdownMenuItem onClick={() => onEditWorkOrder(wo)} className="text-amber-500 font-medium">
+                            <FileText className="mr-2 h-3.5 w-3.5" />
+                            Editar {isQuote ? 'Orçamento' : 'O.S.'}
+                          </DropdownMenuItem>
+
+                          {/* Ações de Transição de Status recomendadas */}
                           {isQuote && wo.status === 'quote_sent' && (
                             <DropdownMenuItem
                               onClick={() => wo.$id && handleApproveQuote(wo.$id)}
-                              className="text-emerald-600 font-semibold"
+                              className="text-[#E8622C] font-semibold"
                             >
                               <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-                              Aprovar & Converter em O.S.
+                              Aprovar & Iniciar O.S.
+                            </DropdownMenuItem>
+                          )}
+
+                          {!isQuote && wo.status === 'approved' && (
+                            <DropdownMenuItem
+                              onClick={() => wo.$id && handleStatusUpdate(wo.$id, 'in_execution')}
+                              className="text-amber-500 font-semibold"
+                            >
+                              <Clock className="mr-2 h-3.5 w-3.5" />
+                              Iniciar Execução
                             </DropdownMenuItem>
                           )}
 
                           {!isQuote && wo.status === 'in_execution' && (
                             <DropdownMenuItem
                               onClick={() => wo.$id && handleStatusUpdate(wo.$id, 'completed')}
-                              className="text-indigo-600 font-semibold"
+                              className="text-[#E8622C] font-semibold"
                             >
                               <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-                              Concluir Serviço
+                              Marcar como Concluída
                             </DropdownMenuItem>
                           )}
 
                           {!isQuote && wo.status === 'completed' && (
                             <DropdownMenuItem
                               onClick={() => handleConvertToInvoice(wo)}
-                              className="text-teal-600 font-bold"
+                              className="text-[#E8622C] font-bold"
                             >
                               <Zap className="mr-2 h-3.5 w-3.5 fill-current" />
-                              Gerar Cobrança PIX
+                              Emitir Fatura / Cobrança PIX
+                            </DropdownMenuItem>
+                          )}
+
+                          <DropdownMenuSeparator />
+
+                          {/* Alteração direta de status */}
+                          <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Mudar Status
+                          </div>
+
+                          {wo.status !== 'approved' && (
+                            <DropdownMenuItem onClick={() => wo.$id && handleStatusUpdate(wo.$id, 'approved')}>
+                              <span className="w-2 h-2 rounded-full bg-[#E8622C] mr-2" />
+                              Aprovada
+                            </DropdownMenuItem>
+                          )}
+
+                          {wo.status !== 'in_execution' && (
+                            <DropdownMenuItem onClick={() => wo.$id && handleStatusUpdate(wo.$id, 'in_execution')}>
+                              <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
+                              Em Execução
+                            </DropdownMenuItem>
+                          )}
+
+                          {wo.status !== 'completed' && (
+                            <DropdownMenuItem onClick={() => wo.$id && handleStatusUpdate(wo.$id, 'completed')}>
+                              <span className="w-2 h-2 rounded-full bg-[#2B2B2B] mr-2" />
+                              Concluída
+                            </DropdownMenuItem>
+                          )}
+
+                          {wo.status !== 'rejected' && (
+                            <DropdownMenuItem onClick={() => wo.$id && handleStatusUpdate(wo.$id, 'rejected')} className="text-rose-400">
+                              <span className="w-2 h-2 rounded-full bg-rose-500 mr-2" />
+                              Recusada
                             </DropdownMenuItem>
                           )}
 

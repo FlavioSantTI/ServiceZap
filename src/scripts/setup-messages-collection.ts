@@ -107,6 +107,12 @@ async function setupMessagesCollection() {
   // 8. tenantId (string, max 255, default: 'default') - para compatibilidade multi-tenant
   await ensureStringAttribute('tenantId', 255, 'default');
 
+  // 9. Atributos de Mídia & Anexos
+  await ensureStringAttribute('mediaType', 32, '');
+  await ensureStringAttribute('mediaUrl', 2048, '');
+  await ensureStringAttribute('mimeType', 128, '');
+  await ensureStringAttribute('fileName', 255, '');
+
   console.log('⚡ Configurando índices de alta performance...');
 
   // Índice essencial para idempotência e buscas rápidas de de-duplicação

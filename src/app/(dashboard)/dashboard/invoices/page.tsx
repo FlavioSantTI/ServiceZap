@@ -119,7 +119,7 @@ export default function InvoicesPage() {
           <Button
             onClick={() => setCreateInvoiceOpen(true)}
             size="sm"
-            className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20"
+            className="h-9 gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs"
           >
             <Plus className="h-4 w-4" />
             <span>Nova Cobrança</span>
@@ -146,12 +146,12 @@ export default function InvoicesPage() {
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Recebido (Pago)</p>
-              <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+              <p className="text-[11px] font-bold text-[#E8622C] uppercase tracking-wider">Recebido (Pago)</p>
+              <p className="text-xl font-extrabold text-[#E8622C] mt-1">
                 R$ {paidAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-[#E8622C]">
               <CheckCircle2 className="h-5 w-5" />
             </div>
           </CardContent>
