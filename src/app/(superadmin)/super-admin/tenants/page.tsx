@@ -408,37 +408,93 @@ export default function SuperAdminTenantsPage() {
         tenantToEdit={selectedTenantToEdit}
       />
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Confirmação de Exclusão / Cancelamento Seguro */}
       <Dialog open={!!tenantToDelete} onOpenChange={(open) => !open && setTenantToDelete(null)}>
-        <DialogContent className="max-w-md bg-white border-[#DECDBB] text-[#2B2B2B] p-6 rounded-2xl">
+        <DialogContent className="max-w-lg bg-white border-[#DECDBB] text-[#2B2B2B] p-6 rounded-2xl shadow-xl">
           <DialogHeader>
-            <div className="h-11 w-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mb-2">
-              <Trash2 className="h-5 w-5" />
+            <div className="h-11 w-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-2">
+              <Shield className="h-5 w-5" />
             </div>
             <DialogTitle className="text-lg font-bold text-[#2B2B2B]">
-              Excluir Empresa?
+              Gerenciar Exclusão / Cancelamento
             </DialogTitle>
             <DialogDescription className="text-xs text-[#666666]">
-              Você está prestes a remover permanentemente a empresa <strong>{tenantToDelete?.name}</strong> ({tenantToDelete?.document}). Esta ação não poderá ser desfeita.
+              Como você deseja proceder com a empresa <strong>{tenantToDelete?.name}</strong> ({tenantToDelete?.document})?
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="pt-4 flex items-center justify-end gap-2">
+          <div className="space-y-3 py-2 text-xs text-[#555]">
+            <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200">
+              <div className="font-bold text-emerald-900 flex items-center gap-1.5 mb-1">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                Opção 1: Cancelar & Arquivar (Recomendado)
+              </div>
+              <p className="text-[#555]">
+                Desativa a empresa e bloqueia os logins dos colaboradores, mas <strong>preserva todas as mensagens do WhatsApp, histórico de faturas e logs de auditoria</strong> intactos para segurança e conformidade legal/fiscal.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-red-50/80 border border-red-200">
+              <div className="font-bold text-red-900 flex items-center gap-1.5 mb-1">
+                <Trash2 className="h-4 w-4 text-red-600" />
+                Opção 2: Excluir Definitivamente
+              </div>
+              <p className="text-[#555]">
+                Remove o registro da empresa do banco de dados.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-3 flex flex-col sm:flex-row items-center justify-end gap-2 border-t border-gray-100">
             <Button
               type="button"
               variant="outline"
               onClick={() => setTenantToDelete(null)}
-              className="border-[#DECDBB] text-[#666] text-xs"
+              className="w-full sm:w-auto border-[#DECDBB] text-[#666] text-xs"
             >
               Cancelar
             </Button>
             <Button
               type="button"
               disabled={isDeleting}
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+              onClick={async () => {
+                if (!tenantToDelete) return;
+                setIsDeleting(true);
+                try {
+                  await deleteTenantAction(tenantToDelete.$id, 'soft');
+                  setTenants((prev) =>
+                    prev.map((t) => (t.$id === tenantToDelete.$id ? { ...t, status: 'canceled' } : t))
+                  );
+                  setTenantToDelete(null);
+                } catch (e) {
+                  console.error('Erro ao arquivar tenant:', e);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold"
             >
-              {isDeleting ? 'Excluindo...' : 'Sim, Excluir Empresa'}
+              {isDeleting ? 'Processando...' : 'Arquivar / Cancelar'}
+            </Button>
+            <Button
+              type="button"
+              disabled={isDeleting}
+              onClick={async () => {
+                if (!tenantToDelete) return;
+                setIsDeleting(true);
+                try {
+                  await deleteTenantAction(tenantToDelete.$id, 'hard');
+                  setTenants((prev) => prev.filter((t) => t.$id !== tenantToDelete.$id));
+                  setTenantToDelete(null);
+                } catch (e) {
+                  console.error('Erro ao excluir tenant:', e);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir Definitivo'}
             </Button>
           </DialogFooter>
         </DialogContent>

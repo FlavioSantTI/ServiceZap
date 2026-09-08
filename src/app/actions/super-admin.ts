@@ -234,15 +234,20 @@ export async function updateTenantAction(input: UpdateTenantInput): Promise<{ su
   }
 }
 
-export async function deleteTenantAction(tenantId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteTenantAction(
+  tenantId: string,
+  mode: 'soft' | 'hard' = 'soft'
+): Promise<{ success: boolean; error?: string }> {
   try {
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       await logAuditEvent({
         tenantId,
-        action: 'super_admin.tenant_delete',
+        action: mode === 'soft' ? 'super_admin.tenant_archive' : 'super_admin.tenant_delete',
         category: 'super_admin',
         entityId: tenantId,
-        details: `Empresa ${tenantId} excluída pelo Super Admin.`,
+        details: mode === 'soft'
+          ? `Empresa ${tenantId} cancelada/arquivada com preservação de mensagens e logs.`
+          : `Empresa ${tenantId} expurgada definitivamente do sistema.`,
       });
       revalidatePath('/super-admin');
       revalidatePath('/super-admin/tenants');
@@ -250,26 +255,61 @@ export async function deleteTenantAction(tenantId: string): Promise<{ success: b
     }
 
     const { databases } = await createAdminClient();
-    await databases.deleteDocument(
-      DATABASE_ID,
-      COLLECTION_TENANTS,
-      tenantId
-    );
 
-    await logAuditEvent({
-      tenantId,
-      action: 'super_admin.tenant_delete',
-      category: 'super_admin',
-      entityId: tenantId,
-      details: `Empresa ${tenantId} excluída com sucesso.`,
-    });
+    if (mode === 'soft') {
+      // 1. Soft Delete (Recomendado): Altera status para 'canceled'
+      // Preserva integralmente todas as mensagens, histórico de faturas e logs para auditoria/fisco
+      await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTION_TENANTS,
+        tenantId,
+        { status: 'canceled' }
+      );
+
+      // Desativa usuários vinculados a este tenant
+      try {
+        const usersList = await databases.listDocuments(
+          DATABASE_ID,
+          COLLECTION_USERS,
+          [Query.equal('tenantId', tenantId), Query.limit(100)]
+        );
+        for (const userDoc of usersList.documents) {
+          await databases.updateDocument(DATABASE_ID, COLLECTION_USERS, userDoc.$id, { active: false });
+        }
+      } catch (e) {
+        console.warn('⚠️ Aviso ao desativar usuários do tenant cancelado:', e);
+      }
+
+      await logAuditEvent({
+        tenantId,
+        action: 'super_admin.tenant_archive',
+        category: 'super_admin',
+        entityId: tenantId,
+        details: `Empresa ${tenantId} cancelada/arquivada. Mensagens e histórico preservados com segurança.`,
+      });
+    } else {
+      // 2. Hard Delete: Expurgo definitivo do tenant
+      await databases.deleteDocument(
+        DATABASE_ID,
+        COLLECTION_TENANTS,
+        tenantId
+      );
+
+      await logAuditEvent({
+        tenantId: 'super_admin_system',
+        action: 'super_admin.tenant_delete',
+        category: 'super_admin',
+        entityId: tenantId,
+        details: `Empresa ${tenantId} expurgada definitivamente pelo Super Admin.`,
+      });
+    }
 
     revalidatePath('/super-admin');
     revalidatePath('/super-admin/tenants');
     return { success: true };
   } catch (error: any) {
-    console.error('❌ Erro ao excluir tenant:', error);
-    return { success: false, error: error.message || 'Erro ao excluir empresa' };
+    console.error('❌ Erro ao processar exclusão do tenant:', error);
+    return { success: false, error: error.message || 'Erro ao processar exclusão da empresa' };
   }
 }
 
