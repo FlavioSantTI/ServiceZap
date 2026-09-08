@@ -1,5 +1,6 @@
 # ⚡ ServiceZap — Plataforma Inteligente de CRM, OS & Automação WhatsApp
 
+![Version](https://img.shields.io/badge/version-0.90--beta-purple?style=for-the-badge)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16_App_Router-black?style=for-the-badge&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
