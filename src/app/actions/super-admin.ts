@@ -157,6 +157,122 @@ export async function createTenantAction(input: CreateTenantInput): Promise<{ su
   }
 }
 
+export interface UpdateTenantInput {
+  tenantId: string;
+  name: string;
+  companyName?: string;
+  personType?: 'pf' | 'pj';
+  document: string;
+  email?: string;
+  phone?: string;
+  plan: 'free' | 'starter' | 'pro' | 'enterprise' | string;
+  maxUsers: number;
+  ownerName: string;
+  ownerEmail: string;
+  status?: TenantStatus;
+}
+
+export async function updateTenantAction(input: UpdateTenantInput): Promise<{ success: boolean; tenant?: any; error?: string }> {
+  try {
+    const planConfig = SAAS_PLANS[input.plan] || SAAS_PLANS.free;
+    const maxUsers = input.maxUsers || planConfig.limits.maxUsers;
+
+    const payload: any = {
+      name: input.name,
+      companyName: input.companyName || input.name,
+      personType: input.personType || 'pj',
+      document: input.document,
+      email: input.email || input.ownerEmail,
+      phone: input.phone || '',
+      plan: input.plan,
+      maxUsers,
+      ownerName: input.ownerName,
+      ownerEmail: input.ownerEmail,
+    };
+
+    if (input.status) {
+      payload.status = input.status;
+    }
+
+    if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
+      await logAuditEvent({
+        tenantId: input.tenantId,
+        action: 'super_admin.tenant_update',
+        category: 'super_admin',
+        entityId: input.tenantId,
+        entityName: input.name,
+        details: `Empresa ${input.name} atualizada pelo Super Admin.`,
+      });
+      revalidatePath('/super-admin');
+      revalidatePath('/super-admin/tenants');
+      return { success: true };
+    }
+
+    const { databases } = await createAdminClient();
+    const updated = await databases.updateDocument(
+      DATABASE_ID,
+      COLLECTION_TENANTS,
+      input.tenantId,
+      payload
+    );
+
+    await logAuditEvent({
+      tenantId: input.tenantId,
+      action: 'super_admin.tenant_update',
+      category: 'super_admin',
+      entityId: input.tenantId,
+      entityName: input.name,
+      details: `Empresa ${input.name} atualizada pelo Super Admin.`,
+    });
+
+    revalidatePath('/super-admin');
+    revalidatePath('/super-admin/tenants');
+    return { success: true, tenant: JSON.parse(JSON.stringify(updated)) };
+  } catch (error: any) {
+    console.error('❌ Erro ao atualizar tenant:', error);
+    return { success: false, error: error.message || 'Erro ao atualizar empresa' };
+  }
+}
+
+export async function deleteTenantAction(tenantId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
+      await logAuditEvent({
+        tenantId,
+        action: 'super_admin.tenant_delete',
+        category: 'super_admin',
+        entityId: tenantId,
+        details: `Empresa ${tenantId} excluída pelo Super Admin.`,
+      });
+      revalidatePath('/super-admin');
+      revalidatePath('/super-admin/tenants');
+      return { success: true };
+    }
+
+    const { databases } = await createAdminClient();
+    await databases.deleteDocument(
+      DATABASE_ID,
+      COLLECTION_TENANTS,
+      tenantId
+    );
+
+    await logAuditEvent({
+      tenantId,
+      action: 'super_admin.tenant_delete',
+      category: 'super_admin',
+      entityId: tenantId,
+      details: `Empresa ${tenantId} excluída com sucesso.`,
+    });
+
+    revalidatePath('/super-admin');
+    revalidatePath('/super-admin/tenants');
+    return { success: true };
+  } catch (error: any) {
+    console.error('❌ Erro ao excluir tenant:', error);
+    return { success: false, error: error.message || 'Erro ao excluir empresa' };
+  }
+}
+
 export async function updateTenantStatusAction(tenantId: string, status: TenantStatus): Promise<{ success: boolean; error?: string }> {
   try {
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {

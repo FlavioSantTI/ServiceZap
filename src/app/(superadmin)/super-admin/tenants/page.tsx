@@ -10,10 +10,13 @@ import {
   XCircle,
   Shield,
   Edit2,
+  Trash2,
   Users,
   CreditCard,
   RefreshCw,
   MoreVertical,
+  Power,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,20 +36,38 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import {
   fetchTenantsAction,
   updateTenantStatusAction,
   updateTenantPlanAction,
+  deleteTenantAction,
 } from '@/app/actions/super-admin';
 import { TenantDocument, TenantStatus } from '@/types/appwrite';
 import { TenantDialog } from '@/components/super-admin/tenant-dialog';
 
 export default function SuperAdminTenantsPage() {
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [tenants, setTenants] = useState<TenantDocument[]>([]);
   const [search, setSearch] = useState('');
   const [planFilter, setPlanFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  
+  // Modais de Criação / Edição
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedTenantToEdit, setSelectedTenantToEdit] = useState<TenantDocument | null>(null);
+
+  // Modal de Confirmação de Exclusão
+  const [tenantToDelete, setTenantToDelete] = useState<TenantDocument | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -64,12 +85,32 @@ export default function SuperAdminTenantsPage() {
     loadData();
   }, []);
 
+  const handleToggleStatus = async (tenant: TenantDocument) => {
+    const isCurrentlyActive = tenant.status === 'active' || tenant.status === 'trialing' || tenant.status === 'trial';
+    const newStatus: TenantStatus = isCurrentlyActive ? 'suspended' : 'active';
+    
+    setActionLoading(tenant.$id);
+    try {
+      await updateTenantStatusAction(tenant.$id, newStatus);
+      setTenants((prev) =>
+        prev.map((t) => (t.$id === tenant.$id ? { ...t, status: newStatus } : t))
+      );
+    } catch (e) {
+      console.error('Erro ao alternar status:', e);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleStatusChange = async (tenantId: string, newStatus: TenantStatus) => {
+    setActionLoading(tenantId);
     try {
       await updateTenantStatusAction(tenantId, newStatus);
       await loadData();
     } catch (e) {
       console.error('Erro ao atualizar status:', e);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -78,11 +119,38 @@ export default function SuperAdminTenantsPage() {
     newPlan: 'free' | 'starter' | 'pro' | 'enterprise',
     maxUsers?: number
   ) => {
+    setActionLoading(tenantId);
     try {
       await updateTenantPlanAction(tenantId, newPlan, maxUsers);
       await loadData();
     } catch (e) {
       console.error('Erro ao atualizar plano:', e);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleOpenEdit = (tenant: TenantDocument) => {
+    setSelectedTenantToEdit(tenant);
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenCreate = () => {
+    setSelectedTenantToEdit(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tenantToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteTenantAction(tenantToDelete.$id);
+      setTenants((prev) => prev.filter((t) => t.$id !== tenantToDelete.$id));
+      setTenantToDelete(null);
+    } catch (e) {
+      console.error('Erro ao excluir tenant:', e);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -100,7 +168,8 @@ export default function SuperAdminTenantsPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-10">
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -109,7 +178,7 @@ export default function SuperAdminTenantsPage() {
             Empresas & Tenants Cadastrados
           </h1>
           <p className="text-sm text-[#666666]">
-            Gerencie o ciclo de vida, permissões e upgrades das empresas clientes do ServiceZap.
+            CRUD completo: cadastre, edite dados, ative/desative o acesso e gerencie os planos de cada empresa.
           </p>
         </div>
 
@@ -125,30 +194,30 @@ export default function SuperAdminTenantsPage() {
             Atualizar
           </Button>
           <Button
-            onClick={() => setIsCreateOpen(true)}
-            className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105 shadow-warm-sm"
+            onClick={handleOpenCreate}
+            className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105 shadow-sm"
           >
             <Plus className="h-4 w-4 mr-1.5" />
-            Cadastrar Empresa
+            Nova Empresa
           </Button>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-3 rounded-2xl border border-[#DECDBB] bg-white p-4 shadow-warm-xs">
+      <div className="flex flex-col md:flex-row gap-3 rounded-2xl border border-[#DECDBB] bg-white p-4 shadow-xs">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888888]" />
           <Input
             placeholder="Buscar por nome da empresa, CNPJ/CPF ou e-mail do admin..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#FAF6F2] border-[#DECDBB]"
+            className="pl-9 bg-[#FAF6F2] border-[#DECDBB] text-xs h-10"
           />
         </div>
 
         <div className="flex gap-2">
           <Select value={planFilter} onValueChange={(val: string | null) => setPlanFilter(val || 'all')}>
-            <SelectTrigger className="w-[150px] bg-[#FAF6F2] border-[#DECDBB]">
+            <SelectTrigger className="w-[160px] bg-[#FAF6F2] border-[#DECDBB] text-xs h-10">
               <SelectValue placeholder="Plano" />
             </SelectTrigger>
             <SelectContent>
@@ -161,14 +230,14 @@ export default function SuperAdminTenantsPage() {
           </Select>
 
           <Select value={statusFilter} onValueChange={(val: string | null) => setStatusFilter(val || 'all')}>
-            <SelectTrigger className="w-[150px] bg-[#FAF6F2] border-[#DECDBB]">
+            <SelectTrigger className="w-[160px] bg-[#FAF6F2] border-[#DECDBB] text-xs h-10">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Status</SelectItem>
               <SelectItem value="active">Ativo</SelectItem>
               <SelectItem value="trialing">Trial / Teste</SelectItem>
-              <SelectItem value="suspended">Suspenso</SelectItem>
+              <SelectItem value="suspended">Suspenso / Desativado</SelectItem>
               <SelectItem value="canceled">Cancelado</SelectItem>
             </SelectContent>
           </Select>
@@ -176,16 +245,16 @@ export default function SuperAdminTenantsPage() {
       </div>
 
       {/* Tenants Table */}
-      <div className="rounded-2xl border border-[#DECDBB] bg-white shadow-warm-xs overflow-hidden">
+      <div className="rounded-2xl border border-[#DECDBB] bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-[#DECDBB] bg-[#FAF6F2] text-xs font-bold text-[#8A503C] uppercase">
               <tr>
-                <th className="py-3.5 px-4">Empresa / CNPJ</th>
+                <th className="py-3.5 px-4">Empresa / Documento</th>
                 <th className="py-3.5 px-4">Admin Responsável</th>
-                <th className="py-3.5 px-4">Plano Atual</th>
+                <th className="py-3.5 px-4">Plano</th>
                 <th className="py-3.5 px-4">Limite Equipe</th>
-                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4 text-center">Ativar / Desativar</th>
                 <th className="py-3.5 px-4 text-right">Ações</th>
               </tr>
             </thead>
@@ -203,103 +272,178 @@ export default function SuperAdminTenantsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredTenants.map((tenant) => (
-                  <tr key={tenant.$id} className="hover:bg-[#FAF6F2] transition-colors">
-                    <td className="py-4 px-4">
-                      <div className="font-bold text-[#2B2B2B]">{tenant.name}</div>
-                      <div className="text-xs text-[#777777] font-mono">{tenant.document}</div>
-                      {tenant.phone && <div className="text-xs text-[#888888]">{tenant.phone}</div>}
-                    </td>
+                filteredTenants.map((tenant) => {
+                  const isActive = tenant.status === 'active' || tenant.status === 'trialing' || tenant.status === 'trial';
+                  const isSuspended = tenant.status === 'suspended';
+                  const isCurrentAction = actionLoading === tenant.$id;
 
-                    <td className="py-4 px-4">
-                      <div className="font-semibold text-[#333333]">{tenant.ownerName || 'Admin Principal'}</div>
-                      <div className="text-xs text-[#666666]">{tenant.ownerEmail || tenant.email}</div>
-                    </td>
+                  return (
+                    <tr key={tenant.$id} className="hover:bg-[#FAF6F2]/60 transition-colors">
+                      
+                      {/* Empresa / CNPJ */}
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-[#2B2B2B] text-sm">{tenant.name}</div>
+                        {tenant.companyName && tenant.companyName !== tenant.name && (
+                          <div className="text-xs text-[#666666] line-clamp-1">{tenant.companyName}</div>
+                        )}
+                        <div className="text-xs text-[#888888] font-mono mt-0.5">{tenant.document}</div>
+                        {tenant.phone && <div className="text-xs text-[#888888]">{tenant.phone}</div>}
+                      </td>
 
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black uppercase bg-[#FFF3EE] text-[#E8622C] border border-[#F0806B]/20 shadow-xs">
-                        {tenant.plan || 'Free'}
-                      </span>
-                    </td>
+                      {/* Admin Responsável */}
+                      <td className="py-4 px-4">
+                        <div className="font-semibold text-[#333333]">{tenant.ownerName || 'Admin Master'}</div>
+                        <div className="text-xs text-[#666666]">{tenant.ownerEmail || tenant.email}</div>
+                      </td>
 
-                    <td className="py-4 px-4 font-semibold text-[#444444]">
-                      <div className="flex items-center gap-1.5">
-                        <Users className="h-4 w-4 text-[#8A503C]" />
-                        <span>{tenant.maxUsers || 1} colaborador{(tenant.maxUsers || 1) > 1 ? 'es' : ''}</span>
-                      </div>
-                    </td>
-
-                    <td className="py-4 px-4">
-                      {tenant.status === 'active' || tenant.status === 'trialing' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EBF6EE] text-[#10B981]">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Ativo
+                      {/* Plano */}
+                      <td className="py-4 px-4">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black uppercase bg-[#FFF3EE] text-[#E8622C] border border-[#F0806B]/20">
+                          {tenant.plan || 'Free'}
                         </span>
-                      ) : tenant.status === 'suspended' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF9E6] text-[#D97706]">
-                          <AlertTriangle className="h-3 w-3" />
-                          Suspenso
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEE2E2] text-[#DC2626]">
-                          <XCircle className="h-3 w-3" />
-                          Cancelado
-                        </span>
-                      )}
-                    </td>
+                      </td>
 
-                    <td className="py-4 px-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-[#FAF6F2] text-[#666666] hover:text-[#2B2B2B] transition-colors">
-                          <MoreVertical className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white border-[#DECDBB]">
-                          <DropdownMenuLabel className="text-xs text-[#888888]">Alterar Plano</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'starter', 2)}>
-                            Mudar para Starter (2 users)
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'pro', 5)}>
-                            Mudar para Pro (5 users)
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'enterprise', 15)}>
-                            Mudar para Enterprise (15 users)
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-[#DECDBB]" />
-                          <DropdownMenuLabel className="text-xs text-[#888888]">Status do Tenant</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => handleStatusChange(tenant.$id, 'active')}
-                            className="text-[#10B981]"
+                      {/* Limite de Equipe */}
+                      <td className="py-4 px-4 font-semibold text-[#444444]">
+                        <div className="flex items-center gap-1.5">
+                          <Users className="h-4 w-4 text-[#8A503C]" />
+                          <span>{tenant.maxUsers || 1} colaborador{(tenant.maxUsers || 1) > 1 ? 'es' : ''}</span>
+                        </div>
+                      </td>
+
+                      {/* Switch Ativar / Desativar */}
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Switch
+                            checked={isActive}
+                            disabled={isCurrentAction}
+                            onCheckedChange={() => handleToggleStatus(tenant)}
+                          />
+                          <span className={`text-xs font-bold ${isActive ? 'text-[#10B981]' : isSuspended ? 'text-[#D97706]' : 'text-[#DC2626]'}`}>
+                            {isActive ? 'Ativo' : isSuspended ? 'Suspenso' : 'Inativo'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Ações (Editar, Excluir, Dropdown) */}
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Botão Editar Rápido */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenEdit(tenant)}
+                            className="h-8 w-8 p-0 text-[#666] hover:text-[#E8622C] hover:bg-orange-50 rounded-lg"
+                            title="Editar Dados da Empresa"
                           >
-                            Ativar Empresa
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleStatusChange(tenant.$id, 'suspended')}
-                            className="text-[#D97706]"
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+
+                          {/* Botão Excluir */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setTenantToDelete(tenant)}
+                            className="h-8 w-8 p-0 text-[#888] hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Excluir Empresa"
                           >
-                            Suspender Acesso
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleStatusChange(tenant.$id, 'canceled')}
-                            className="text-[#DC2626]"
-                          >
-                            Cancelar Empresa
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+
+                          {/* Dropdown com mais opções */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-[#FAF6F2] text-[#666666] hover:text-[#2B2B2B] transition-colors">
+                              <MoreVertical className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-52 bg-white border-[#DECDBB]">
+                              <DropdownMenuLabel className="text-xs text-[#888888]">Mudar Plano</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'starter', 2)}>
+                                Starter (2 users)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'pro', 5)}>
+                                Pro (5 users)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'enterprise', 15)}>
+                                Enterprise (15 users)
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-[#DECDBB]" />
+                              <DropdownMenuLabel className="text-xs text-[#888888]">Status Avançado</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusChange(tenant.$id, 'active')}
+                                className="text-[#10B981]"
+                              >
+                                Forçar Status Ativo
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusChange(tenant.$id, 'suspended')}
+                                className="text-[#D97706]"
+                              >
+                                Suspender Acesso
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusChange(tenant.$id, 'canceled')}
+                                className="text-[#DC2626]"
+                              >
+                                Cancelar Contrato
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* Modal de Criação / Edição */}
       <TenantDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
         onSuccess={loadData}
+        tenantToEdit={selectedTenantToEdit}
       />
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Dialog open={!!tenantToDelete} onOpenChange={(open) => !open && setTenantToDelete(null)}>
+        <DialogContent className="max-w-md bg-white border-[#DECDBB] text-[#2B2B2B] p-6 rounded-2xl">
+          <DialogHeader>
+            <div className="h-11 w-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mb-2">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-[#2B2B2B]">
+              Excluir Empresa?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#666666]">
+              Você está prestes a remover permanentemente a empresa <strong>{tenantToDelete?.name}</strong> ({tenantToDelete?.document}). Esta ação não poderá ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setTenantToDelete(null)}
+              className="border-[#DECDBB] text-[#666] text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={isDeleting}
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+            >
+              {isDeleting ? 'Excluindo...' : 'Sim, Excluir Empresa'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

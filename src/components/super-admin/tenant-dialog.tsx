@@ -25,17 +25,20 @@ import {
   CheckCircle2,
   RefreshCw,
   Zap,
+  Edit2,
 } from 'lucide-react';
-import { fetchSaasPlansAction, createTenantAction } from '@/app/actions/super-admin';
+import { fetchSaasPlansAction, createTenantAction, updateTenantAction } from '@/app/actions/super-admin';
 import { SAAS_PLANS, PlanDefinition } from '@/lib/constants/plans';
+import { TenantDocument } from '@/types/appwrite';
 
 interface TenantDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  tenantToEdit?: TenantDocument | null;
 }
 
-export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProps) {
+export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: TenantDialogProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [availablePlans, setAvailablePlans] = useState<PlanDefinition[]>(Object.values(SAAS_PLANS));
@@ -61,8 +64,38 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
           setAvailablePlans(plans);
         }
       });
+
+      if (tenantToEdit) {
+        setFormData({
+          name: tenantToEdit.name || '',
+          companyName: tenantToEdit.companyName || '',
+          personType: (tenantToEdit.personType as 'pf' | 'pj') || (tenantToEdit.document?.length > 14 ? 'pj' : 'pf'),
+          document: tenantToEdit.document || '',
+          email: tenantToEdit.email || '',
+          phone: tenantToEdit.phone || '',
+          plan: tenantToEdit.plan || 'pro',
+          maxUsers: tenantToEdit.maxUsers || 5,
+          ownerName: tenantToEdit.ownerName || '',
+          ownerEmail: tenantToEdit.ownerEmail || tenantToEdit.email || '',
+          adminPassword: '',
+        });
+      } else {
+        setFormData({
+          name: '',
+          companyName: '',
+          personType: 'pj',
+          document: '',
+          email: '',
+          phone: '',
+          plan: 'pro',
+          maxUsers: 5,
+          ownerName: '',
+          ownerEmail: '',
+          adminPassword: '',
+        });
+      }
     }
-  }, [open]);
+  }, [open, tenantToEdit]);
 
   const handlePlanSelect = (planId: string) => {
     const planConfig = availablePlans.find((p) => p.id === planId) || SAAS_PLANS[planId];
@@ -97,41 +130,48 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
         throw new Error('Preencha os campos obrigatórios: Nome da Empresa, Documento, Nome do Gestor e E-mail de Login.');
       }
 
-      const res = await createTenantAction({
-        name: formData.name,
-        companyName: formData.companyName || formData.name,
-        personType: formData.personType,
-        document: formData.document,
-        email: formData.email || formData.ownerEmail,
-        phone: formData.phone,
-        plan: formData.plan,
-        maxUsers: formData.maxUsers,
-        ownerName: formData.ownerName,
-        ownerEmail: formData.ownerEmail,
-        adminPassword: formData.adminPassword || 'ServiceZap@2026',
-      });
+      if (tenantToEdit) {
+        // Modo Edição
+        const res = await updateTenantAction({
+          tenantId: tenantToEdit.$id,
+          name: formData.name,
+          companyName: formData.companyName || formData.name,
+          personType: formData.personType,
+          document: formData.document,
+          email: formData.email || formData.ownerEmail,
+          phone: formData.phone,
+          plan: formData.plan,
+          maxUsers: formData.maxUsers,
+          ownerName: formData.ownerName,
+          ownerEmail: formData.ownerEmail,
+        });
 
-      if (!res.success) {
-        throw new Error(res.error || 'Erro ao cadastrar tenant');
+        if (!res.success) {
+          throw new Error(res.error || 'Erro ao atualizar tenant');
+        }
+      } else {
+        // Modo Criação
+        const res = await createTenantAction({
+          name: formData.name,
+          companyName: formData.companyName || formData.name,
+          personType: formData.personType,
+          document: formData.document,
+          email: formData.email || formData.ownerEmail,
+          phone: formData.phone,
+          plan: formData.plan,
+          maxUsers: formData.maxUsers,
+          ownerName: formData.ownerName,
+          ownerEmail: formData.ownerEmail,
+          adminPassword: formData.adminPassword || 'ServiceZap@2026',
+        });
+
+        if (!res.success) {
+          throw new Error(res.error || 'Erro ao cadastrar tenant');
+        }
       }
 
       onOpenChange(false);
       if (onSuccess) onSuccess();
-
-      // Limpa formulário
-      setFormData({
-        name: '',
-        companyName: '',
-        personType: 'pj',
-        document: '',
-        email: '',
-        phone: '',
-        plan: 'pro',
-        maxUsers: 5,
-        ownerName: '',
-        ownerEmail: '',
-        adminPassword: '',
-      });
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro ao salvar');
     } finally {
@@ -148,14 +188,16 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-[#F0806B] to-[#E8622C] flex items-center justify-center text-white shadow-md">
-                <Building2 className="h-6 w-6" />
+                {tenantToEdit ? <Edit2 className="h-6 w-6" /> : <Building2 className="h-6 w-6" />}
               </div>
               <div>
                 <DialogTitle className="text-xl font-bold tracking-tight text-[#2B2B2B]">
-                  Cadastrar Nova Empresa (Tenant)
+                  {tenantToEdit ? `Editar Empresa: ${tenantToEdit.name}` : 'Cadastrar Nova Empresa (Tenant)'}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-[#666666]">
-                  Adicione uma nova empresa cliente, selecione o plano contratado e defina os acessos do Administrador.
+                  {tenantToEdit
+                    ? 'Atualize os dados cadastrais, plano contratado e acessos do Administrador.'
+                    : 'Adicione uma nova empresa cliente, selecione o plano contratado e defina os acessos do Administrador.'}
                 </DialogDescription>
               </div>
             </div>
@@ -175,9 +217,9 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold text-[#444] uppercase tracking-wider flex items-center gap-1.5">
                 <Shield className="h-3.5 w-3.5 text-[#E8622C]" />
-                1. Escolha o Plano Contratado
+                1. Plano Contratado & Limites
               </Label>
-              <span className="text-[11px] text-[#888]">Clique para selecionar</span>
+              <span className="text-[11px] text-[#888]">Clique para alterar o plano</span>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -231,7 +273,7 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
             </div>
           </div>
 
-          {/* SEÇÃO 2: DADOS DA EMPRESA E ADMIN (GRID 2 COLUNAS HARMONIOSAS) */}
+          {/* SEÇÃO 2: DADOS DA EMPRESA E ADMIN (GRID 2 COLUNAS) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
             {/* Bloco Esquerdo: Dados da Empresa */}
@@ -367,25 +409,36 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-semibold text-[#444]">Senha de Acesso</Label>
-                      <button
-                        type="button"
-                        onClick={generatePassword}
-                        className="text-[10px] text-[#E8622C] font-semibold hover:underline flex items-center gap-0.5"
-                      >
-                        <RefreshCw className="h-2.5 w-2.5" /> Gerar
-                      </button>
+                  {!tenantToEdit ? (
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold text-[#444]">Senha de Acesso</Label>
+                        <button
+                          type="button"
+                          onClick={generatePassword}
+                          className="text-[10px] text-[#E8622C] font-semibold hover:underline flex items-center gap-0.5"
+                        >
+                          <RefreshCw className="h-2.5 w-2.5" /> Gerar
+                        </button>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="ServiceZap@2026"
+                        value={formData.adminPassword}
+                        onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
+                        className="h-9 bg-[#FAF7F4] border-[#DECDBB] text-xs font-mono mt-1"
+                      />
                     </div>
-                    <Input
-                      type="text"
-                      placeholder="ServiceZap@2026"
-                      value={formData.adminPassword}
-                      onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
-                      className="h-9 bg-[#FAF7F4] border-[#DECDBB] text-xs font-mono mt-1"
-                    />
-                  </div>
+                  ) : (
+                    <div>
+                      <Label className="text-xs font-semibold text-[#444]">ID do Tenant</Label>
+                      <Input
+                        disabled
+                        value={tenantToEdit.$id}
+                        className="h-9 bg-gray-100 border-[#DECDBB] text-xs font-mono mt-1 opacity-70"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <Label className="text-xs font-semibold text-[#444]">Limite de Usuários</Label>
@@ -410,9 +463,9 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
                 <Zap className="h-4 w-4" />
               </div>
               <div>
-                <span className="font-medium">Plano selecionado: </span>
+                <span className="font-medium">Plano: </span>
                 <span className="font-bold text-[#2B2B2B]">{selectedPlan?.name}</span>
-                <span className="text-[#888]"> • R$ {selectedPlan?.priceMonthly || 0}/mês</span>
+                <span className="text-[#888]"> • R$ {selectedPlan?.priceMonthly || 0}/mês ({formData.maxUsers} colaboradores)</span>
               </div>
             </div>
 
@@ -433,12 +486,12 @@ export function TenantDialog({ open, onOpenChange, onSuccess }: TenantDialogProp
                 {loading ? (
                   <span className="flex items-center gap-1.5">
                     <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Cadastrando Empresa...
+                    Salvando...
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    Cadastrar Empresa
+                    {tenantToEdit ? 'Salvar Alterações' : 'Cadastrar Empresa'}
                   </span>
                 )}
               </Button>
