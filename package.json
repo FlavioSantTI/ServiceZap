@@ -1,6 +1,6 @@
 {
   "name": "servicezap",
-  "version": "0.90.0-beta",
+  "version": "1.0.0-beta",
   "private": true,
   "scripts": {
     "dev": "next dev",

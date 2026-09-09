@@ -19,7 +19,7 @@ interface UseWhatsAppMessagesRealtimeOptions {
 export function useWhatsAppMessagesRealtime({
   phone,
   initialMessages = [],
-  limit = 50,
+  limit = 60,
 }: UseWhatsAppMessagesRealtimeOptions = {}) {
   const [messages, setMessages] = useState<MessageDocument[]>(initialMessages);
   const [loading, setLoading] = useState<boolean>(true);
@@ -36,10 +36,10 @@ export function useWhatsAppMessagesRealtime({
     setMessages(list);
   }, []);
 
-  // 1. Carga inicial de mensagens via Server Action (com fallback para SDK REST)
-  const fetchMessages = useCallback(async () => {
+  // 1. Carga de mensagens via Server Action
+  const fetchMessages = useCallback(async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       setError(null);
 
       let docs: MessageDocument[] = [];
@@ -114,9 +114,16 @@ export function useWhatsAppMessagesRealtime({
       console.error('[useWhatsAppMessagesRealtime] Erro ao carregar mensagens:', err);
       setError(err?.message || 'Falha ao buscar mensagens');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }, [phone, limit, syncMessagesFromMap]);
+
+  // Limpa o map ao trocar de telefone
+  useEffect(() => {
+    messagesMapRef.current.clear();
+    setMessages([]);
+    fetchMessages();
+  }, [phone]);
 
   // 2. Subscrição Realtime desacoplada e limpa
   useEffect(() => {
@@ -160,7 +167,6 @@ export function useWhatsAppMessagesRealtime({
         }
 
         // PREVENÇÃO CONTRA DUPLICAÇÃO VISUAL:
-        // Verifica se já existe um documento com o mesmo $id OU com o mesmo whatsapp_message_id
         let targetKey = payload.$id;
 
         if (payload.whatsapp_message_id && !payload.whatsapp_message_id.startsWith('app_')) {
@@ -185,18 +191,8 @@ export function useWhatsAppMessagesRealtime({
       }
     });
 
-    // 3. Fallback ativo de sincronização a cada 2.5 segundos
-    // Garante latência mínima e entrega imediata mesmo se o WebSocket do Appwrite Cloud oscilar/desconectar
-    const pollInterval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        fetchMessages();
-      }
-    }, 2500);
-
-    // Cleanup obrigatório para evitar memory leaks
     return () => {
       unsubscribe();
-      clearInterval(pollInterval);
     };
   }, [fetchMessages, phone, syncMessagesFromMap]);
 

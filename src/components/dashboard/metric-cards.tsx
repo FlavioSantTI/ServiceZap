@@ -3,42 +3,42 @@
 import React from 'react';
 import { DollarSign, Clock, AlertTriangle, FileCheck2, ArrowUpRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { mockInvoices } from '@/lib/mock-data';
+import { InvoiceDocument } from '@/types/appwrite';
 
-export function MetricCards() {
-  const totalPaid = mockInvoices
-    .filter((inv) => inv.status === 'paid')
-    .reduce((acc, inv) => acc + (inv.amount || 0), 0);
+interface MetricCardsProps {
+  invoices?: Partial<InvoiceDocument>[];
+}
 
-  const totalPending = mockInvoices
-    .filter((inv) => inv.status === 'pending')
-    .reduce((acc, inv) => acc + (inv.amount || 0), 0);
+export function MetricCards({ invoices = [] }: MetricCardsProps) {
+  const paidInvoices = invoices.filter((inv) => inv.status === 'paid');
+  const pendingInvoices = invoices.filter((inv) => inv.status === 'pending');
+  const overdueInvoices = invoices.filter((inv) => inv.status === 'overdue');
+  const nfeAuthorized = invoices.filter((inv) => inv.nfeStatus === 'authorized');
 
-  const totalOverdue = mockInvoices
-    .filter((inv) => inv.status === 'overdue')
-    .reduce((acc, inv) => acc + (inv.amount || 0), 0);
-
-  const totalNfeIssued = mockInvoices.filter((inv) => inv.nfeStatus === 'authorized').length;
+  const totalPaid = paidInvoices.reduce((acc, inv) => acc + (inv.amount || 0), 0);
+  const totalPending = pendingInvoices.reduce((acc, inv) => acc + (inv.amount || 0), 0);
+  const totalOverdue = overdueInvoices.reduce((acc, inv) => acc + (inv.amount || 0), 0);
+  const totalNfeIssued = nfeAuthorized.length;
 
   const metrics = [
     {
-      title: 'Receita Confirmada',
+      title: 'Receita Confirmada (Paga)',
       value: `R$ ${totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      change: '+14% este mês',
+      change: `${paidInvoices.length} faturas recebidas`,
       icon: DollarSign,
       iconBg: 'bg-orange-500/15 text-[#E8622C] border-orange-500/25',
     },
     {
-      title: 'A Receber (Pendente)',
+      title: 'A Receber (Valor em Aberto)',
       value: `R$ ${totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      change: `${mockInvoices.filter((inv) => inv.status === 'pending').length} faturas abertas`,
+      change: `${pendingInvoices.length} faturas abertas`,
       icon: Clock,
       iconBg: 'bg-amber-500/15 text-amber-600 border-amber-500/25',
     },
     {
-      title: 'Cobranças Atrasadas',
+      title: 'Cobranças Vencidas',
       value: `R$ ${totalOverdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      change: 'Requer atenção',
+      change: overdueInvoices.length > 0 ? `${overdueInvoices.length} em atraso` : 'Nenhum atraso',
       icon: AlertTriangle,
       iconBg: 'bg-red-500/15 text-red-600 border-red-500/25',
     },

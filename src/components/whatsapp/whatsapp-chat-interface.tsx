@@ -40,7 +40,9 @@ import {
   disconnectWhatsAppAction,
   checkWhatsAppConnectionAction,
   getWhatsAppMessagesAction,
+  clearWhatsAppHistoryAction,
 } from '@/app/actions/whatsapp';
+import { fetchClientsAction } from '@/app/actions/clients';
 import { QuickRepliesModal } from '@/components/whatsapp/quick-replies-modal';
 import { LabelsManagerModal } from '@/components/whatsapp/labels-manager-modal';
 import { AppointmentModal } from '@/components/agenda/appointment-modal';
@@ -189,7 +191,7 @@ export function WhatsAppChatInterface({
         console.warn('Erro ao restaurar anexo do PDF na mensageria:', err);
       }
     }
-  }, [searchParams, clientsList]);
+  }, [searchParams]);
 
   const loadLabelsAndReplies = async () => {
     try {
@@ -486,7 +488,7 @@ export function WhatsAppChatInterface({
     }
   }, [clients]);
 
-  // 1. Carrega e mescla contatos não cadastrados a partir do histórico recente de mensagens via Server Action
+  // 1. Carrega e mescla contatos não cadastrados a partir do histórico recente de mensagens via Server Action (Apenas no mount)
   useEffect(() => {
     async function loadRecentMessageContacts() {
       try {
@@ -538,7 +540,7 @@ export function WhatsAppChatInterface({
     }
 
     loadRecentMessageContacts();
-  }, [clients]);
+  }, []);
 
   // 2. Subscrição Realtime de novos clientes (coleção de clientes no Appwrite)
   useEffect(() => {
@@ -624,7 +626,11 @@ export function WhatsAppChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (smooth = true) => {
-    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: smooth ? 'smooth' : 'auto',
+      block: 'nearest',
+      inline: 'nearest',
+    });
   };
 
   useEffect(() => {
@@ -649,21 +655,92 @@ export function WhatsAppChatInterface({
     return clientLabelIds.includes(selectedLabelFilter);
   });
 
-
-  const handleRefreshConnection = async () => {
+  // Função unificada para recarregar contatos, conversas e status do tenant ativo
+  const reloadContactsAndConversations = async () => {
     try {
       setIsRefreshing(true);
+
+      // 1. Checa o estado da conexão e número do WhatsApp
       const res = await checkWhatsAppConnectionAction();
       setStatus(res.status);
+      setInstance((prev) => ({
+        ...prev,
+        status: res.status,
+        phone: res.phone || (res.status === 'disconnected' ? '' : prev.phone),
+        instanceName: res.instanceName,
+      }));
+
+      // 2. Busca lista atualizada de clientes cadastrados do tenant
+      const freshClients = await fetchClientsAction();
+
+      // 3. Busca histórico recente de mensagens do tenant
+      const recentMsgs = await getWhatsAppMessagesAction(undefined, 100);
+
+      const updatedList: Partial<ClientDocument>[] = [...freshClients];
+
+      if (recentMsgs && recentMsgs.length > 0) {
+        for (const msg of recentMsgs) {
+          if (msg.phone) {
+            const cleanPhone = sanitizeWhatsAppJid(msg.phone);
+            const exists = updatedList.some((c) => isSamePhone(c.phone || '', cleanPhone));
+            if (!exists && cleanPhone) {
+              updatedList.push({
+                $id: `auto_${cleanPhone}`,
+                name: `Contato WA (${cleanPhone.slice(-8)})`,
+                phone: cleanPhone,
+                status: 'active',
+                notes: 'Contato detectado nas mensagens do WhatsApp',
+              });
+            }
+          }
+        }
+      }
+
+      setClientsList(updatedList);
+
+      // Atualiza cliente selecionado se necessário
+      setSelectedClient((curr) => {
+        if (curr && updatedList.some((c) => (curr.$id && c.$id === curr.$id) || (curr.phone && c.phone && isSamePhone(curr.phone, c.phone)))) {
+          return curr;
+        }
+        return updatedList.length > 0 ? updatedList[0] : null;
+      });
+
+      // 4. Força atualização do hook de realtime
+      refresh();
+    } catch (err) {
+      console.warn('Erro ao atualizar contatos e conversas do WhatsApp:', err);
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleRefreshConnection = async () => {
+    await reloadContactsAndConversations();
   };
 
   const handleDisconnect = async () => {
     if (confirm('Deseja realmente desconectar esta sessão do WhatsApp?')) {
       await disconnectWhatsAppAction();
       setStatus('disconnected');
+      setInstance((prev) => ({
+        ...prev,
+        status: 'disconnected',
+        phone: '',
+      }));
+      await reloadContactsAndConversations();
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (
+      confirm(
+        'Deseja limpar todo o histórico de mensagens desta sessão/empresa no aplicativo? Esta ação removerá as mensagens locais e sincronizadas no banco de dados.'
+      )
+    ) {
+      setIsRefreshing(true);
+      await clearWhatsAppHistoryAction();
+      await reloadContactsAndConversations();
     }
   };
 
@@ -755,6 +832,18 @@ export function WhatsAppChatInterface({
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-[#E8622C]' : ''}`} />
               <span>Verificar</span>
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleClearHistory}
+              disabled={isRefreshing}
+              title="Limpar histórico de mensagens da sessão/empresa ativa"
+              className="h-8 gap-1.5 text-xs rounded-xl border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-zinc-500" />
+              <span className="hidden sm:inline">Limpar Histórico</span>
             </Button>
 
             {isConnected ? (

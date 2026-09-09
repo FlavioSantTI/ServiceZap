@@ -36,10 +36,6 @@ export async function fetchWorkOrdersAction(): Promise<Partial<WorkOrderDocument
       ]
     );
 
-    if (response.documents.length === 0) {
-      return mockWorkOrders;
-    }
-
     return JSON.parse(JSON.stringify(response.documents));
   } catch (error) {
     console.warn('⚠️ Fallback para mockWorkOrders:', error);
@@ -259,12 +255,31 @@ export async function convertWorkOrderToInvoiceAction(
   }
 ): Promise<{ success: boolean; invoiceId?: string; error?: string }> {
   try {
+    let clientId: string | undefined;
+    let clientPhone: string | undefined;
+
+    if (process.env.APPWRITE_API_KEY) {
+      try {
+        const { databases } = await createAdminClient();
+        const woDoc = await databases.getDocument<WorkOrderDocument>(DATABASE_ID, COLLECTION_WORK_ORDERS, workOrderId);
+        if (woDoc) {
+          clientId = woDoc.clientId;
+          clientPhone = woDoc.clientPhone;
+        }
+      } catch (e) {
+        console.warn('Não foi possível obter dados completos da O.S. para conversão:', e);
+      }
+    }
+
     const invoiceRes = await createInvoiceAction({
       clientName: sanitizeStr(workOrderData.clientName, 100),
+      clientId,
+      clientPhone,
       amount: Math.max(0, Number(workOrderData.amount) || 0),
       dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
       description: `Fatura referente à O.S.: ${sanitizeStr(workOrderData.serviceName, 150)}`,
       issueNfe: false,
+      sendWhatsApp: !!clientPhone,
     });
 
     if (!invoiceRes.success || !invoiceRes.data?.$id) {

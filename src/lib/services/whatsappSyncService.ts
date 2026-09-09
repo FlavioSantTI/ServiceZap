@@ -72,13 +72,15 @@ export class WhatsAppSyncService {
       // silencioso
     }
   }
+
   /**
-   * Garante que um número de telefone possua cadastro no CRM (auto-cadastro de novos contatos)
+   * Garante que um número de telefone possua cadastro no CRM (auto-cadastro de novos contatos) isolado por tenant
    */
-  static async ensureClientExistsForPhone(phone: string, pushName?: string): Promise<void> {
+  static async ensureClientExistsForPhone(phone: string, pushName?: string, tenantId?: string): Promise<void> {
     if (!process.env.APPWRITE_API_KEY) return;
     const cleanPhone = sanitizeWhatsAppJid(phone);
     if (!cleanPhone || cleanPhone.length < 8) return;
+    const targetTenantId = tenantId || 'tenant_01';
 
     try {
       const { databases } = await createAdminClient();
@@ -94,18 +96,22 @@ export class WhatsAppSyncService {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         COLLECTION_CLIENTS,
-        [Query.equal('phone', phoneVariants), Query.limit(1)]
+        [
+          Query.equal('tenantId', targetTenantId),
+          Query.equal('phone', phoneVariants),
+          Query.limit(1),
+        ]
       );
 
       if (existing.documents.length === 0) {
         const clientName = pushName?.trim() || `Contato WA (${cleanPhone.slice(-8)})`;
-        console.log(`👤 [WhatsAppSyncService] Auto-cadastrando novo cliente no CRM: "${clientName}" (${cleanPhone})`);
+        console.log(`👤 [WhatsAppSyncService][${targetTenantId}] Auto-cadastrando novo cliente no CRM: "${clientName}" (${cleanPhone})`);
         await databases.createDocument(
           DATABASE_ID,
           COLLECTION_CLIENTS,
           ID.unique(),
           {
-            tenantId: 'tenant_01',
+            tenantId: targetTenantId,
             name: clientName,
             document: '',
             email: '',
@@ -124,7 +130,7 @@ export class WhatsAppSyncService {
         );
       }
     } catch (err) {
-      console.warn('[WhatsAppSyncService] Aviso ao auto-cadastrar cliente:', err);
+      console.warn(`[WhatsAppSyncService][${targetTenantId}] Aviso ao auto-cadastrar cliente:`, err);
     }
   }
 
@@ -157,6 +163,7 @@ export class WhatsAppSyncService {
    */
   static async createInboundMessage(payload: WebhookMessageUpsertPayload): Promise<MessageDocument> {
     const cleanPhone = sanitizeWhatsAppJid(payload.phone);
+    const targetTenantId = payload.tenantId || 'tenant_01';
 
     // 1. Checagem em memória ultra-rápida (0ms) contra duplicatas
     if (payload.wamid) {
@@ -175,7 +182,7 @@ export class WhatsAppSyncService {
     }
 
     // 2. Auto-cadastro executado em background sem travar o pipeline da mensagem
-    this.ensureClientExistsForPhone(cleanPhone, payload.pushName).catch(() => {});
+    this.ensureClientExistsForPhone(cleanPhone, payload.pushName, targetTenantId).catch(() => {});
 
     // 3. Gravação direta no Appwrite sem atrasos
     const { databases } = await createAdminClient();
@@ -193,7 +200,7 @@ export class WhatsAppSyncService {
           origin: 'whatsapp_native' as MessageOrigin,
           whatsapp_message_id: payload.wamid,
           created_at: payload.timestamp || new Date().toISOString(),
-          tenantId: payload.tenantId || 'default',
+          tenantId: targetTenantId,
           ...(payload.mediaType ? { mediaType: payload.mediaType } : {}),
           ...(payload.mediaUrl ? { mediaUrl: payload.mediaUrl } : {}),
           ...(payload.mimeType ? { mimeType: payload.mimeType } : {}),
@@ -221,7 +228,7 @@ export class WhatsAppSyncService {
           origin: 'whatsapp_native' as MessageOrigin,
           whatsapp_message_id: payload.wamid,
           created_at: payload.timestamp || new Date().toISOString(),
-          tenantId: payload.tenantId || 'default',
+          tenantId: targetTenantId,
         }
       );
     }
@@ -238,6 +245,7 @@ export class WhatsAppSyncService {
   }> {
     const { databases } = await createAdminClient();
     const cleanPhone = sanitizeWhatsAppJid(payload.phone);
+    const targetTenantId = payload.tenantId || 'tenant_01';
 
     // 1. Busca por WAMID direto
     const existing = await this.findMessageByWamid(payload.wamid);
@@ -284,6 +292,7 @@ export class WhatsAppSyncService {
         DATABASE_ID,
         MESSAGES_COLLECTION_ID,
         [
+          Query.equal('tenantId', targetTenantId),
           Query.equal('phone', cleanPhone),
           Query.equal('direction', 'outbound'),
           Query.orderDesc('created_at'),
@@ -300,7 +309,7 @@ export class WhatsAppSyncService {
       });
 
       if (matchingPending) {
-        console.log(`🔗 [WhatsAppSyncService] Reconciliando eco Baileys com mensagem pendente do App: ${matchingPending.$id} -> WAMID: ${payload.wamid}`);
+        console.log(`🔗 [WhatsAppSyncService][${targetTenantId}] Reconciliando eco Baileys com mensagem pendente do App: ${matchingPending.$id} -> WAMID: ${payload.wamid}`);
         const updated = await databases.updateDocument<MessageDocument>(
           DATABASE_ID,
           MESSAGES_COLLECTION_ID,
@@ -319,12 +328,12 @@ export class WhatsAppSyncService {
         };
       }
     } catch (reconcileErr) {
-      console.warn('[WhatsAppSyncService] Aviso ao reconciliar mensagem recente:', reconcileErr);
+      console.warn(`[WhatsAppSyncService][${targetTenantId}] Aviso ao reconciliar mensagem recente:`, reconcileErr);
     }
 
     // 3. Se o WAMID já foi marcado pelo motor como enviado pelo app, não duplica como celular nativo
     if (this.isAppSentWamid(payload.wamid)) {
-      console.log(`⏩ [WhatsAppSyncService] WAMID ${payload.wamid} marcado como appSent, ignorando criação nativa duplicada.`);
+      console.log(`⏩ [WhatsAppSyncService][${targetTenantId}] WAMID ${payload.wamid} marcado como appSent, ignorando criação nativa duplicada.`);
       return {
         action: 'updated_existing',
         document: { $id: `app_${payload.wamid}`, whatsapp_message_id: payload.wamid } as any,
@@ -345,7 +354,7 @@ export class WhatsAppSyncService {
           origin: 'whatsapp_native' as MessageOrigin,
           whatsapp_message_id: payload.wamid,
           created_at: payload.timestamp || new Date().toISOString(),
-          tenantId: payload.tenantId || 'default',
+          tenantId: targetTenantId,
           ...(payload.mediaType ? { mediaType: payload.mediaType } : {}),
           ...(payload.mediaUrl ? { mediaUrl: payload.mediaUrl } : {}),
           ...(payload.mimeType ? { mimeType: payload.mimeType } : {}),
@@ -358,7 +367,7 @@ export class WhatsAppSyncService {
         document: created,
       };
     } catch (createErr) {
-      console.warn('[WhatsAppSyncService] Erro com atributos de mídia no Appwrite ao salvar eco de celular, salvando modo reduzido:', createErr);
+      console.warn(`[WhatsAppSyncService][${targetTenantId}] Erro com atributos de mídia no Appwrite ao salvar eco de celular, salvando modo reduzido:`, createErr);
       const mediaTag = payload.mediaUrl ? `[Mídia: ${payload.mediaType || 'image'}] ${payload.mediaUrl}` : '';
       const fallbackContent = payload.content ? `${payload.content}\n${mediaTag}` : mediaTag || payload.content || '';
 
@@ -374,7 +383,7 @@ export class WhatsAppSyncService {
           origin: 'whatsapp_native' as MessageOrigin,
           whatsapp_message_id: payload.wamid,
           created_at: payload.timestamp || new Date().toISOString(),
-          tenantId: payload.tenantId || 'default',
+          tenantId: targetTenantId,
         }
       );
 
@@ -399,6 +408,7 @@ export class WhatsAppSyncService {
   }): Promise<MessageDocument> {
     const { databases } = await createAdminClient();
     const cleanPhone = sanitizeWhatsAppJid(params.phone);
+    const targetTenantId = params.tenantId || 'tenant_01';
     const tempWamid = `app_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     return await databases.createDocument<MessageDocument>(
@@ -413,7 +423,7 @@ export class WhatsAppSyncService {
         origin: 'app_ui' as MessageOrigin,
         whatsapp_message_id: tempWamid,
         created_at: new Date().toISOString(),
-        tenantId: params.tenantId || 'default',
+        tenantId: targetTenantId,
         ...(params.mediaType ? { mediaType: params.mediaType } : {}),
         ...(params.mediaUrl ? { mediaUrl: params.mediaUrl } : {}),
         ...(params.mimeType ? { mimeType: params.mimeType } : {}),
@@ -423,7 +433,7 @@ export class WhatsAppSyncService {
   }
 
   /**
-   * Vincula o WAMID real retornado pela Evolution API à mensagem criada na UI
+   * Vincula o WAMID real retornado à mensagem criada na UI
    */
   static async attachRealWamid(documentId: string, realWamid: string): Promise<MessageDocument> {
     const { databases } = await createAdminClient();

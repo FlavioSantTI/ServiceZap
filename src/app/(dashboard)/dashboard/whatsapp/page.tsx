@@ -30,16 +30,10 @@ export default async function WhatsAppDashboardPage() {
         </p>
       </div>
 
-      <Suspense fallback={
-        <div className="h-[600px] flex items-center justify-center border border-slate-800 rounded-2xl bg-slate-900/50">
-          <Loader2 className="w-8 h-8 text-[#E8622C] animate-spin" />
-        </div>
-      }>
-        <WhatsAppChatInterface
-          initialInstance={instance}
-          clients={clients}
-        />
-      </Suspense>
+      <WhatsAppChatInterface
+        initialInstance={instance}
+        clients={clients}
+      />
     </div>
   );
 }

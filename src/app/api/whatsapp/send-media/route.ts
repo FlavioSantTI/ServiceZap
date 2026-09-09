@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEmbeddedWhatsAppEngine } from '@/lib/whatsapp/embeddedEngine';
 import { saveMediaBuffer } from '@/lib/utils/mediaStorage';
 import { sanitizeWhatsAppJid } from '@/lib/utils/whatsappUtils';
+import { getTenantId } from '@/lib/utils/getTenantId';
 import { createAdminClient } from '@/lib/appwrite/server';
 import { ID } from 'node-appwrite';
 import { MessageDocument } from '@/types/appwrite';
@@ -17,6 +18,7 @@ export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   try {
+    const tenantId = await getTenantId();
     const formData = await req.formData();
     const phoneNumber = formData.get('phoneNumber') as string;
     const mediaType = formData.get('mediaType') as 'image' | 'video' | 'audio' | 'document';
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
             origin: 'app_ui',
             whatsapp_message_id: initialWamid,
             created_at: new Date().toISOString(),
-            tenantId: 'tenant_01',
+            tenantId,
             mediaType,
             mediaUrl,
             mimeType,
@@ -98,7 +100,7 @@ export async function POST(req: NextRequest) {
               origin: 'app_ui',
               whatsapp_message_id: initialWamid,
               created_at: new Date().toISOString(),
-              tenantId: 'tenant_01',
+              tenantId,
             }
           );
           docId = createdFallback.$id;
@@ -108,8 +110,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Dispara via Baileys motor nativo
-    const engine = getEmbeddedWhatsAppEngine();
+    // 3. Dispara via Baileys motor nativo do tenant
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     let realWamid = initialWamid;
     try {
       const sendResult = await engine.sendMediaMessage({
@@ -145,6 +147,7 @@ export async function POST(req: NextRequest) {
       origin: 'app_ui',
       whatsapp_message_id: realWamid,
       created_at: new Date().toISOString(),
+      tenantId,
       mediaType,
       mediaUrl,
       mimeType,

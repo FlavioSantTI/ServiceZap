@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
 import { getEmbeddedWhatsAppEngine } from '@/lib/whatsapp/embeddedEngine';
 import { getWhatsAppInstanceAction } from '@/app/actions/whatsapp';
+import { getTenantId } from '@/lib/utils/getTenantId';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const engine = getEmbeddedWhatsAppEngine();
+    const tenantId = await getTenantId();
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     const status = engine.getStatus();
     const instance = await getWhatsAppInstanceAction();
 
     return NextResponse.json({
       success: true,
+      tenantId,
       engine: {
         status: status.status,
         phone: status.phone,

@@ -14,29 +14,35 @@ import fs from 'fs';
 import { WhatsAppStatus } from '@/types/appwrite';
 import { WhatsAppSyncService, sanitizeWhatsAppJid } from '@/lib/services/whatsappSyncService';
 import { createAdminClient } from '@/lib/appwrite/server';
+import { Query, ID } from 'node-appwrite';
 import { saveMediaBuffer } from '@/lib/utils/mediaStorage';
 import { convertToWhatsAppPttOgg, generateVideoThumbnail } from '@/lib/utils/audioConverter';
 
 const SESSIONS_DIR = path.resolve(process.cwd(), '.whatsapp_sessions');
-const DEFAULT_SESSION_NAME = process.env.WHATSAPP_SESSION_NAME || 'servicezap_main';
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID || 'servicezap_db';
 const COLLECTION_WHATSAPP = process.env.APPWRITE_COLLECTION_WHATSAPP || 'whatsapp_instances';
 
 export class EmbeddedWhatsAppEngine {
   private sock: WASocket | null = null;
   private status: WhatsAppStatus = 'disconnected';
-  private sessionName: string = DEFAULT_SESSION_NAME;
+  private sessionName: string;
+  private tenantId: string;
   private isInitializing: boolean = false;
   private isReadyForPairing: boolean = false;
   private connectedPhone: string = '';
   private lidToPhoneMap: Map<string, string> = new Map();
 
-  constructor(sessionName: string = DEFAULT_SESSION_NAME) {
-    this.sessionName = sessionName;
+  constructor(tenantId: string = 'tenant_01', sessionName?: string) {
+    this.tenantId = tenantId;
+    this.sessionName = sessionName || tenantId;
+  }
+
+  public getTenantId(): string {
+    return this.tenantId;
   }
 
   /**
-   * Garante a existência do diretório de sessões
+   * Garante a existência do diretório de sessões específico do tenant
    */
   private ensureSessionDir(): string {
     const dir = path.join(SESSIONS_DIR, this.sessionName);
@@ -99,9 +105,9 @@ export class EmbeddedWhatsAppEngine {
         this.status = 'connected';
         this.isInitializing = false;
         this.isReadyForPairing = false;
-        const userJid = sock.user?.id || '';
+        const userJid = sock.user?.id || (sock as any).authState?.creds?.me?.id || '';
         this.connectedPhone = sanitizeWhatsAppJid(userJid);
-        console.log(`✅ [EmbeddedWhatsApp] Conectado com sucesso! Tel: ${this.connectedPhone}`);
+        console.log(`✅ [EmbeddedWhatsApp][${this.tenantId}] Conectado com sucesso! Tel: ${this.connectedPhone}`);
         await this.syncInstanceStatusToAppwrite('connected', this.connectedPhone);
       }
 
@@ -112,11 +118,12 @@ export class EmbeddedWhatsAppEngine {
         const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
         console.warn(
-          `⚠️ [EmbeddedWhatsApp] Conexão fechada. Motivo: ${statusCode}. Reconectar: ${shouldReconnect}`
+          `⚠️ [EmbeddedWhatsApp][${this.tenantId}] Conexão fechada. Motivo: ${statusCode}. Reconectar: ${shouldReconnect}`
         );
 
         if (statusCode === DisconnectReason.loggedOut) {
           this.status = 'disconnected';
+          this.connectedPhone = '';
           this.sock = null;
           await this.syncInstanceStatusToAppwrite('disconnected');
           // Remove arquivos da sessão deslogada
@@ -131,6 +138,7 @@ export class EmbeddedWhatsAppEngine {
           setTimeout(() => this.init(), 3000);
         } else {
           this.status = 'disconnected';
+          this.connectedPhone = '';
           this.sock = null;
           await this.syncInstanceStatusToAppwrite('disconnected');
         }
@@ -175,7 +183,7 @@ export class EmbeddedWhatsAppEngine {
             const pn = await (this.sock as any).signalRepository.lidMapping.getPNForLID(rawJid);
             if (pn) {
               rawJid = pn;
-              console.log(`🔎 [EmbeddedWhatsApp] LID ${key.remoteJid} resolvido via lidMapping para PN: ${pn}`);
+              console.log(`🔎 [EmbeddedWhatsApp][${this.tenantId}] LID ${key.remoteJid} resolvido via lidMapping para PN: ${pn}`);
             }
           } catch (lidErr) {
             // fallback silencioso
@@ -184,7 +192,7 @@ export class EmbeddedWhatsAppEngine {
 
         if (rawJid.endsWith('@lid') && this.lidToPhoneMap.has(cleanLid)) {
           const mappedPhone = this.lidToPhoneMap.get(cleanLid)!;
-          console.log(`🔎 [EmbeddedWhatsApp] LID ${key.remoteJid} resolvido via mapa local para número: ${mappedPhone}`);
+          console.log(`🔎 [EmbeddedWhatsApp][${this.tenantId}] LID ${key.remoteJid} resolvido via mapa local para número: ${mappedPhone}`);
           rawJid = `${mappedPhone}@s.whatsapp.net`;
         }
       }
@@ -282,12 +290,12 @@ export class EmbeddedWhatsAppEngine {
           if (buffer && buffer.length > 0) {
             const saved = await saveMediaBuffer(buffer, mimeType || 'application/octet-stream', fileName);
             mediaUrl = saved.mediaUrl;
-            console.log(`📸 [EmbeddedWhatsApp] Mídia (${mediaType}) recebida e salva com sucesso em disk local (${buffer.length} bytes): ${mediaUrl}`);
+            console.log(`📸 [EmbeddedWhatsApp][${this.tenantId}] Mídia (${mediaType}) recebida e salva com sucesso em disk local (${buffer.length} bytes): ${mediaUrl}`);
           } else {
-            console.warn(`⚠️ [EmbeddedWhatsApp] Mídia (${mediaType}) detectada, mas buffer retornou vazio.`);
+            console.warn(`⚠️ [EmbeddedWhatsApp][${this.tenantId}] Mídia (${mediaType}) detectada, mas buffer retornou vazio.`);
           }
         } catch (mediaErr) {
-          console.warn('[EmbeddedWhatsApp] Erro ao baixar mídia recebida:', mediaErr);
+          console.warn(`[EmbeddedWhatsApp][${this.tenantId}] Erro ao baixar mídia recebida:`, mediaErr);
         }
       }
 
@@ -299,7 +307,7 @@ export class EmbeddedWhatsAppEngine {
         docMsg?.caption ||
         '';
 
-      console.log(`📩 [EmbeddedWhatsApp] Mensagem ${fromMe ? 'outbound (eco)' : 'inbound (recebida)'} - De/Para: ${cleanPhone} | Mídia: ${mediaType || 'nenhuma'} (${mediaUrl || 'sem url'}) | Conteúdo: "${messageContent}"`);
+      console.log(`📩 [EmbeddedWhatsApp][${this.tenantId}] Mensagem ${fromMe ? 'outbound (eco)' : 'inbound (recebida)'} - De/Para: ${cleanPhone} | Mídia: ${mediaType || 'nenhuma'} (${mediaUrl || 'sem url'}) | Conteúdo: "${messageContent}"`);
 
       const timestamp = msg.messageTimestamp
         ? new Date(Number(msg.messageTimestamp) * 1000).toISOString()
@@ -311,7 +319,7 @@ export class EmbeddedWhatsAppEngine {
         phone: cleanPhone,
         content: messageContent,
         timestamp,
-        tenantId: 'tenant_01',
+        tenantId: this.tenantId,
         pushName: msg.pushName || '',
         mediaType,
         mediaUrl,
@@ -326,7 +334,7 @@ export class EmbeddedWhatsAppEngine {
         // Se a mensagem foi enviada intencionalmente pelo próprio app recentemente,
         // apenas confirma o status 'sent' sem recriar o documento no Appwrite
         if (WhatsAppSyncService.isAppSentWamid(wamid)) {
-          console.log(`⏩ [EmbeddedWhatsApp] Eco Baileys ignorado para mensagem do app (WAMID: ${wamid})`);
+          console.log(`⏩ [EmbeddedWhatsApp][${this.tenantId}] Eco Baileys ignorado para mensagem do app (WAMID: ${wamid})`);
           await WhatsAppSyncService.confirmAppMessageSent(wamid);
           return;
         }
@@ -335,7 +343,7 @@ export class EmbeddedWhatsAppEngine {
         await WhatsAppSyncService.handleOutboundEcho(payload);
       }
     } catch (error) {
-      console.error('[EmbeddedWhatsApp] Erro ao processar mensagem recebida:', error);
+      console.error(`[EmbeddedWhatsApp][${this.tenantId}] Erro ao processar mensagem recebida:`, error);
     }
   }
 
@@ -380,12 +388,7 @@ export class EmbeddedWhatsAppEngine {
       throw new Error('Informe um número de telefone válido com DDI e DDD (ex: 5511999998888).');
     }
 
-    if (this.status === 'connected') {
-      throw new Error('Esta sessão do WhatsApp já está conectada.');
-    }
-
-    // Se houver uma tentativa anterior que não conectou, reinicia a sessão do zero
-    // para que a Meta permita um novo canal de pareamento
+    // Reinicia a sessão do zero para que a Meta permita um novo canal de pareamento
     await this.resetForNewPairing();
 
     // Inicializa o socket Baileys com estado limpo
@@ -409,7 +412,7 @@ export class EmbeddedWhatsAppEngine {
 
       return formattedCode;
     } catch (error: any) {
-      console.error('[EmbeddedWhatsApp] Falha ao solicitar Pairing Code via Baileys:', error);
+      console.error(`[EmbeddedWhatsApp][${this.tenantId}] Falha ao solicitar Pairing Code via Baileys:`, error);
       await this.resetForNewPairing();
       throw new Error(error.message || 'Falha ao gerar código de pareamento no Baileys.');
     }
@@ -506,7 +509,7 @@ export class EmbeddedWhatsAppEngine {
               if ((res as any).lid) {
                 const cleanLid = sanitizeWhatsAppJid((res as any).lid);
                 this.lidToPhoneMap.set(cleanLid, cleanPhone);
-                console.log(`📌 [EmbeddedWhatsApp] Mapeamento LID ↔ Telefone registrado: ${cleanLid} -> ${cleanPhone}`);
+                console.log(`📌 [EmbeddedWhatsApp][${this.tenantId}] Mapeamento LID ↔ Telefone registrado: ${cleanLid} -> ${cleanPhone}`);
               }
             }
           }
@@ -516,14 +519,14 @@ export class EmbeddedWhatsAppEngine {
 
     // 2. Disparo imediato via socket (latência ~100ms)
     try {
-      console.log(`📤 [EmbeddedWhatsApp] Disparando mensagem Baileys para: ${targetJid} | Texto: "${text}"`);
+      console.log(`📤 [EmbeddedWhatsApp][${this.tenantId}] Disparando mensagem Baileys para: ${targetJid} | Texto: "${text}"`);
       const sent = await sock.sendMessage(targetJid, { text });
       const wamid = sent?.key?.id || `app_${Date.now()}`;
       WhatsAppSyncService.registerAppSentWamid(wamid);
-      console.log(`✅ [EmbeddedWhatsApp] Mensagem entregue com sucesso! WAMID: ${wamid}`);
+      console.log(`✅ [EmbeddedWhatsApp][${this.tenantId}] Mensagem entregue com sucesso! WAMID: ${wamid}`);
       return { wamid };
     } catch (err: any) {
-      console.warn('[EmbeddedWhatsApp] Tentativa padrão falhou, tentando número alternativo (com/sem 9)...', err?.message);
+      console.warn(`[EmbeddedWhatsApp][${this.tenantId}] Tentativa padrão falhou, tentando número alternativo (com/sem 9)...`, err?.message);
       // Se era 13 dígitos, tenta 12 dígitos
       let altJid = targetJid;
       if (cleanPhone.startsWith('55') && cleanPhone.length === 13 && cleanPhone[4] === '9') {
@@ -535,7 +538,7 @@ export class EmbeddedWhatsAppEngine {
       const sent = await sock.sendMessage(altJid, { text });
       const wamid = sent?.key?.id || `app_${Date.now()}`;
       WhatsAppSyncService.registerAppSentWamid(wamid);
-      console.log(`✅ [EmbeddedWhatsApp] Mensagem entregue no JID alternativo! WAMID: ${wamid}`);
+      console.log(`✅ [EmbeddedWhatsApp][${this.tenantId}] Mensagem entregue no JID alternativo! WAMID: ${wamid}`);
       return { wamid };
     }
   }
@@ -570,13 +573,12 @@ export class EmbeddedWhatsAppEngine {
       try {
         thumbBuffer = await generateVideoThumbnail(params.mediaBuffer);
       } catch (thumbErr) {
-        console.warn('[EmbeddedWhatsApp] Não foi possível gerar thumbnail de vídeo:', thumbErr);
+        console.warn(`[EmbeddedWhatsApp][${this.tenantId}] Não foi possível gerar thumbnail de vídeo:`, thumbErr);
       }
 
       if (isLargeVideo) {
         // Vídeos longos ou > 16MB são enviados com container de documento MP4
-        // Esse padrão suporta até 2GB no WhatsApp sem restrições de transcodificação da Meta
-        console.log(`📦 [EmbeddedWhatsApp] Vídeo grande/longo (${(params.mediaBuffer.length / (1024 * 1024)).toFixed(1)}MB). Enviando como documento de vídeo de alta capacidade.`);
+        console.log(`📦 [EmbeddedWhatsApp][${this.tenantId}] Vídeo grande/longo (${(params.mediaBuffer.length / (1024 * 1024)).toFixed(1)}MB). Enviando como documento de vídeo.`);
         contentPayload = {
           document: params.mediaBuffer,
           caption: params.caption || '',
@@ -601,7 +603,7 @@ export class EmbeddedWhatsAppEngine {
         audioBuffer = converted.buffer;
         audioMime = converted.mimeType;
       } catch (convErr) {
-        console.warn('[EmbeddedWhatsApp] Erro convertendo áudio PTT com ffmpeg:', convErr);
+        console.warn(`[EmbeddedWhatsApp][${this.tenantId}] Erro convertendo áudio PTT com ffmpeg:`, convErr);
       }
 
       contentPayload = {
@@ -625,7 +627,7 @@ export class EmbeddedWhatsAppEngine {
         return await sock.sendMessage(jid, payload, sendOptions);
       } catch (sendErr: any) {
         if (params.mediaType === 'video' && !payload.document) {
-          console.warn('⚠️ [EmbeddedWhatsApp] Envio como videoMessage falhou, ativando fallback automático para documento MP4...', sendErr?.message);
+          console.warn(`⚠️ [EmbeddedWhatsApp][${this.tenantId}] Envio como videoMessage falhou, ativando fallback automático para documento MP4...`, sendErr?.message);
           const fallbackDocPayload = {
             document: params.mediaBuffer,
             caption: params.caption || '',
@@ -640,14 +642,14 @@ export class EmbeddedWhatsAppEngine {
     };
 
     try {
-      console.log(`📤 [EmbeddedWhatsApp] Disparando mídia (${params.mediaType}) Baileys para: ${targetJid}`);
+      console.log(`📤 [EmbeddedWhatsApp][${this.tenantId}] Disparando mídia (${params.mediaType}) Baileys para: ${targetJid}`);
       const sent = await sendWithFallback(targetJid, contentPayload);
       const wamid = sent?.key?.id || `app_${Date.now()}`;
       WhatsAppSyncService.registerAppSentWamid(wamid);
-      console.log(`✅ [EmbeddedWhatsApp] Mídia entregue com sucesso! WAMID: ${wamid}`);
+      console.log(`✅ [EmbeddedWhatsApp][${this.tenantId}] Mídia entregue com sucesso! WAMID: ${wamid}`);
       return { wamid };
     } catch (err: any) {
-      console.warn('[EmbeddedWhatsApp] Envio de mídia falhou no JID principal, tentando número alternativo...', err?.message);
+      console.warn(`[EmbeddedWhatsApp][${this.tenantId}] Envio de mídia falhou no JID principal, tentando número alternativo...`, err?.message);
       let altJid = targetJid;
       if (cleanPhone.startsWith('55') && cleanPhone.length === 13 && cleanPhone[4] === '9') {
         altJid = `${cleanPhone.slice(0, 4)}${cleanPhone.slice(5)}@s.whatsapp.net`;
@@ -658,7 +660,7 @@ export class EmbeddedWhatsAppEngine {
       const sent = await sendWithFallback(altJid, contentPayload);
       const wamid = sent?.key?.id || `app_${Date.now()}`;
       WhatsAppSyncService.registerAppSentWamid(wamid);
-      console.log(`✅ [EmbeddedWhatsApp] Mídia entregue no JID alternativo! WAMID: ${wamid}`);
+      console.log(`✅ [EmbeddedWhatsApp][${this.tenantId}] Mídia entregue no JID alternativo! WAMID: ${wamid}`);
       return { wamid };
     }
   }
@@ -681,19 +683,47 @@ export class EmbeddedWhatsAppEngine {
       this.sock = null;
     }
     this.status = 'disconnected';
+    this.connectedPhone = '';
     const sessionDir = this.ensureSessionDir();
     try {
       fs.rmSync(sessionDir, { recursive: true, force: true });
     } catch (e) {
       // ignora
     }
-    await this.syncInstanceStatusToAppwrite('disconnected');
+    await this.syncInstanceStatusToAppwrite('disconnected', '');
   }
 
   /**
    * Retorna o status atual da conexão
    */
   public getStatus(): { status: WhatsAppStatus; phone: string } {
+    if (this.sock?.user?.id && !this.connectedPhone) {
+      this.connectedPhone = sanitizeWhatsAppJid(this.sock.user.id);
+    } else if ((this.sock as any)?.authState?.creds?.me?.id && !this.connectedPhone) {
+      this.connectedPhone = sanitizeWhatsAppJid((this.sock as any).authState.creds.me.id);
+    }
+
+    // Leitura fallback de credenciais em disco se em memória ainda não carregou
+    if (!this.connectedPhone) {
+      const sessionDir = path.join(SESSIONS_DIR, this.sessionName);
+      const credsFile = path.join(sessionDir, 'creds.json');
+      if (fs.existsSync(credsFile)) {
+        try {
+          const creds = JSON.parse(fs.readFileSync(credsFile, 'utf8'));
+          if (creds?.me?.id) {
+            this.connectedPhone = sanitizeWhatsAppJid(creds.me.id);
+            if (this.status === 'disconnected') {
+              this.status = 'connected';
+              // Garante reconexão do socket se estiver parado
+              if (!this.sock && !this.isInitializing) {
+                this.init().catch(() => {});
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+
     return {
       status: this.status,
       phone: this.connectedPhone,
@@ -701,20 +731,23 @@ export class EmbeddedWhatsAppEngine {
   }
 
   /**
-   * Sincroniza o status da instância com o Appwrite Database
+   * Sincroniza o status da instância com o Appwrite Database isolado por tenantId
    */
   private async syncInstanceStatusToAppwrite(status: WhatsAppStatus, phone?: string) {
     if (!process.env.APPWRITE_API_KEY) return;
 
     try {
       const { databases } = await createAdminClient();
-      const list = await databases.listDocuments(DATABASE_ID, COLLECTION_WHATSAPP);
+      const list = await databases.listDocuments<any>(DATABASE_ID, COLLECTION_WHATSAPP, [
+        Query.equal('tenantId', this.tenantId),
+        Query.limit(1),
+      ]);
 
       const updateData: any = {
         status,
         updatedAt: new Date().toISOString(),
       };
-      if (phone) updateData.phone = phone;
+      if (phone !== undefined) updateData.phone = phone;
 
       if (list.documents.length > 0) {
         await databases.updateDocument(
@@ -723,29 +756,48 @@ export class EmbeddedWhatsAppEngine {
           list.documents[0].$id,
           updateData
         );
+      } else {
+        await databases.createDocument(
+          DATABASE_ID,
+          COLLECTION_WHATSAPP,
+          ID.unique(),
+          {
+            tenantId: this.tenantId,
+            instanceName: this.sessionName,
+            instanceId: `inst_${this.sessionName}`,
+            status,
+            phone: phone || '',
+            updatedAt: new Date().toISOString(),
+          }
+        );
       }
     } catch (err) {
-      console.warn('[EmbeddedWhatsApp] Aviso ao sincronizar status no Appwrite:', err);
+      console.warn(`[EmbeddedWhatsApp][${this.tenantId}] Aviso ao sincronizar status no Appwrite:`, err);
     }
   }
 }
 
-// Singleton no ambiente global do Node.js para persistir durante HMR e requisições
+// Map de instâncias por tenantId no ambiente global do Node.js
 declare global {
-  var __embeddedWhatsAppEngineInstance: EmbeddedWhatsAppEngine | undefined;
+  var __whatsAppEngines: Map<string, EmbeddedWhatsAppEngine> | undefined;
 }
 
-export function getEmbeddedWhatsAppEngine(): EmbeddedWhatsAppEngine {
-  if (!global.__embeddedWhatsAppEngineInstance) {
-    const instance = new EmbeddedWhatsAppEngine();
-    global.__embeddedWhatsAppEngineInstance = instance;
+export function getEmbeddedWhatsAppEngine(tenantId: string = 'tenant_01'): EmbeddedWhatsAppEngine {
+  if (!global.__whatsAppEngines) {
+    global.__whatsAppEngines = new Map<string, EmbeddedWhatsAppEngine>();
+  }
 
-    // Se já existem credenciais salvas de uma conexão prévia, inicializa automaticamente
-    const sessionDir = path.resolve(process.cwd(), '.whatsapp_sessions', process.env.WHATSAPP_SESSION_NAME || 'servicezap_main');
+  if (!global.__whatsAppEngines.has(tenantId)) {
+    const engine = new EmbeddedWhatsAppEngine(tenantId, tenantId);
+    global.__whatsAppEngines.set(tenantId, engine);
+
+    // Se já existem credenciais salvas de uma conexão prévia para este tenant, inicializa automaticamente
+    const sessionDir = path.resolve(SESSIONS_DIR, tenantId);
     const credsFile = path.join(sessionDir, 'creds.json');
     if (fs.existsSync(credsFile)) {
-      instance.init().catch((err) => console.warn('[EmbeddedWhatsApp] Erro na auto-conexão:', err));
+      engine.init().catch((err) => console.warn(`[EmbeddedWhatsApp][${tenantId}] Erro na auto-conexão:`, err));
     }
   }
-  return global.__embeddedWhatsAppEngineInstance;
+
+  return global.__whatsAppEngines.get(tenantId)!;
 }

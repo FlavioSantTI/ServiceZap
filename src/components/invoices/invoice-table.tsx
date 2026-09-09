@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { InvoiceDocument } from '@/types/appwrite';
+import { sendInvoiceViaWhatsAppAction } from '@/app/actions/invoices';
 
 interface InvoiceTableProps {
   invoices: Partial<InvoiceDocument>[];
@@ -51,6 +52,30 @@ export function InvoiceTable({
 }: InvoiceTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sendingWhatsAppId, setSendingWhatsAppId] = useState<string | null>(null);
+
+  const handleSendWhatsApp = async (inv: Partial<InvoiceDocument>) => {
+    if (!inv.$id) return;
+    const targetPhone = prompt(
+      `Confirme o WhatsApp (com DDD) para envio da cobrança de ${inv.clientName} (deixe em branco para usar o número cadastrado do cliente):`,
+      ''
+    );
+    if (targetPhone === null) return; // cancelou
+
+    try {
+      setSendingWhatsAppId(inv.$id);
+      const res = await sendInvoiceViaWhatsAppAction(inv.$id, targetPhone.trim() || undefined);
+      if (res.success) {
+        alert(res.message || 'Fatura enviada com sucesso no WhatsApp do cliente!');
+      } else {
+        alert(`Erro ao enviar fatura: ${res.error}`);
+      }
+    } catch (err: any) {
+      alert(`Erro inesperado ao enviar: ${err.message}`);
+    } finally {
+      setSendingWhatsAppId(null);
+    }
+  };
 
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
@@ -198,6 +223,17 @@ export function InvoiceTable({
                   <TableCell>{getNfeBadge(inv.nfeStatus, inv.nfeNumber)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <Button
+                        onClick={() => handleSendWhatsApp(inv)}
+                        disabled={sendingWhatsAppId === inv.$id}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-500 hover:bg-emerald-500/10 dark:text-emerald-400"
+                        title="Enviar Cobrança por WhatsApp"
+                      >
+                        <Send className={`h-4 w-4 ${sendingWhatsAppId === inv.$id ? 'animate-spin' : ''}`} />
+                      </Button>
+
                       {inv.pixQrCodeUrl && (
                         <Button
                           onClick={() => onSelectPix && onSelectPix(inv)}
@@ -215,6 +251,10 @@ export function InvoiceTable({
                           <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="text-xs">
+                          <DropdownMenuItem onClick={() => handleSendWhatsApp(inv)}>
+                            <Send className="mr-2 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                            Enviar / Reenviar no WhatsApp
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onSelectReceipt && onSelectReceipt(inv)}>
                             <FileText className="mr-2 h-3.5 w-3.5 text-slate-700 dark:text-slate-200" />
                             Gerar Recibo de Serviço
@@ -222,10 +262,6 @@ export function InvoiceTable({
                           <DropdownMenuItem onClick={() => onSelectPix && onSelectPix(inv)}>
                             <QrCode className="mr-2 h-3.5 w-3.5 text-[#E8622C]" />
                             Exibir QR Code PIX
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Send className="mr-2 h-3.5 w-3.5 text-[#E8622C]" />
-                            Reenviar no WhatsApp
                           </DropdownMenuItem>
                           {inv.nfeStatus === 'authorized' && (
                             <DropdownMenuItem>

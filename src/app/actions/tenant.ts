@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/appwrite/server';
 import { TenantDocument } from '@/types/appwrite';
 import { mockTenant } from '@/lib/mock-data';
+import { getTenantId } from '@/lib/utils/getTenantId';
 import { revalidatePath } from 'next/cache';
 import { Query, ID } from 'node-appwrite';
 
@@ -11,34 +12,55 @@ const COLLECTION_TENANTS = process.env.APPWRITE_COLLECTION_TENANTS || 'tenants';
 
 export async function fetchTenantProfileAction(): Promise<Partial<TenantDocument>> {
   try {
+    const tenantId = await getTenantId();
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
-      return mockTenant;
+      if (tenantId === 'tenant_02') {
+        return {
+          ...mockTenant,
+          $id: 'tenant_02',
+          name: 'Empresa Beta Serviços',
+          companyName: 'Empresa Beta Prestadora de Serviços Ltda',
+          document: '22.333.444/0001-55',
+          email: 'beta@servicezap.com',
+          phone: '11988887777',
+        };
+      }
+      return {
+        ...mockTenant,
+        $id: tenantId,
+        name: tenantId === 'tenant_01' ? 'Empresa Alpha' : `Empresa (${tenantId})`,
+      };
     }
 
     const { databases } = await createAdminClient();
     
-    // Tenta primeiro listar os documentos da coleção tenants
+    // Tenta primeiro listar o documento com o ID do tenant
     try {
-      const list = await databases.listDocuments(
+      const document = await databases.getDocument(
         DATABASE_ID,
         COLLECTION_TENANTS,
-        [Query.limit(1)]
+        tenantId
       );
-      if (list.documents.length > 0) {
-        return JSON.parse(JSON.stringify(list.documents[0]));
-      }
+      return JSON.parse(JSON.stringify(document));
     } catch (e) {
-      // Ignora e tenta busca direta
+      // Ignora e tenta listar por query
     }
 
-    // Tenta obter diretamente com o ID tenant_01
-    const document = await databases.getDocument(
+    const list = await databases.listDocuments(
       DATABASE_ID,
       COLLECTION_TENANTS,
-      'tenant_01'
+      [Query.limit(1)]
     );
+    if (list.documents.length > 0) {
+      return JSON.parse(JSON.stringify(list.documents[0]));
+    }
 
-    return JSON.parse(JSON.stringify(document));
+    return {
+      ...mockTenant,
+      $id: tenantId,
+      name: tenantId === 'tenant_01' ? 'Empresa Alpha' : `Empresa (${tenantId})`,
+    };
   } catch (error) {
     console.warn('⚠️ Fallback para mockTenant:', error);
     return mockTenant;
@@ -47,28 +69,16 @@ export async function fetchTenantProfileAction(): Promise<Partial<TenantDocument
 
 export async function updateTenantProfileAction(data: Partial<TenantDocument>): Promise<{ success: boolean; data?: Partial<TenantDocument>; error?: string }> {
   try {
+    const tenantId = await getTenantId();
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
-      const updated = { ...mockTenant, ...data };
+      const updated = { ...mockTenant, ...data, $id: tenantId };
       revalidatePath('/dashboard/profile');
       return { success: true, data: updated };
     }
 
     const { databases } = await createAdminClient();
-    
-    // Verifica se já existe algum tenant cadastrado
-    let targetId = 'tenant_01';
-    try {
-      const list = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTION_TENANTS,
-        [Query.limit(1)]
-      );
-      if (list.documents.length > 0) {
-        targetId = list.documents[0].$id;
-      }
-    } catch (e) {
-      // Se não listar, mantém tenant_01
-    }
+    const targetId = tenantId;
 
     let document;
     try {

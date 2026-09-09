@@ -1,33 +1,69 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MetricCards } from '@/components/dashboard/metric-cards';
 import { WhatsAppStatusCard } from '@/components/dashboard/whatsapp-status-card';
 import { InvoiceTable } from '@/components/invoices/invoice-table';
 import { PixModal } from '@/components/invoices/pix-modal';
-import { InvoiceDocument } from '@/types/appwrite';
-import { fetchInvoicesAction } from '@/app/actions/invoices';
+import { ServiceReceiptModal } from '@/components/invoices/service-receipt-modal';
+import { InvoiceDocument, InvoiceStatus } from '@/types/appwrite';
+import {
+  fetchInvoicesAction,
+  updateInvoiceStatusAction,
+  deleteInvoiceAction,
+} from '@/app/actions/invoices';
 
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<Partial<InvoiceDocument>[]>([]);
   const [selectedPixInvoice, setSelectedPixInvoice] = useState<Partial<InvoiceDocument> | null>(null);
   const [pixModalOpen, setPixModalOpen] = useState(false);
+  const [selectedReceiptInvoice, setSelectedReceiptInvoice] = useState<Partial<InvoiceDocument> | null>(null);
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+
+  const loadInvoices = useCallback(async () => {
+    try {
+      const data = await fetchInvoicesAction();
+      setInvoices(data);
+    } catch (err) {
+      console.error('Erro ao carregar faturas:', err);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadInvoices() {
-      try {
-        const data = await fetchInvoicesAction();
-        setInvoices(data);
-      } catch (err) {
-        console.error('Erro ao carregar faturas:', err);
-      }
-    }
     loadInvoices();
-  }, []);
+  }, [loadInvoices]);
 
   const handleSelectPix = (invoice: Partial<InvoiceDocument>) => {
     setSelectedPixInvoice(invoice);
     setPixModalOpen(true);
+  };
+
+  const handleSelectReceipt = (invoice: Partial<InvoiceDocument>) => {
+    setSelectedReceiptInvoice(invoice);
+    setReceiptModalOpen(true);
+  };
+
+  const handleStatusChange = async (invoiceId: string, status: InvoiceStatus) => {
+    try {
+      const res = await updateInvoiceStatusAction(invoiceId, status);
+      if (res.success) {
+        await loadInvoices();
+      }
+    } catch (err) {
+      console.error('Erro ao alterar status:', err);
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!confirm('Deseja excluir esta cobrança?')) return;
+    try {
+      const res = await deleteInvoiceAction(invoiceId);
+      if (res.success) {
+        await loadInvoices();
+      }
+    } catch (err) {
+      console.error('Erro ao excluir fatura:', err);
+    }
   };
 
   return (
@@ -42,10 +78,10 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Módulo 2: Metrics Cards */}
-      <MetricCards />
+      {/* Módulo 2: Metrics Cards (Preenchimento Dinâmico) */}
+      <MetricCards invoices={invoices} />
 
-      {/* WhatsApp Evolution API Status */}
+      {/* WhatsApp Status Card */}
       <WhatsAppStatusCard />
 
       {/* Módulo 3: Faturas & Tabela de Cobranças */}
@@ -61,7 +97,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <InvoiceTable invoices={invoices} onSelectPix={handleSelectPix} />
+        <InvoiceTable
+          invoices={invoices}
+          onSelectPix={handleSelectPix}
+          onSelectReceipt={handleSelectReceipt}
+          onStatusChange={handleStatusChange}
+          onDeleteInvoice={handleDeleteInvoice}
+        />
       </div>
 
       {/* Modal PIX Copia e Cola / QR Code */}
@@ -69,6 +111,13 @@ export default function DashboardPage() {
         invoice={selectedPixInvoice}
         open={pixModalOpen}
         onOpenChange={setPixModalOpen}
+      />
+
+      {/* Modal Recibo de Serviço */}
+      <ServiceReceiptModal
+        invoice={selectedReceiptInvoice}
+        open={receiptModalOpen}
+        onOpenChange={setReceiptModalOpen}
       />
     </div>
   );

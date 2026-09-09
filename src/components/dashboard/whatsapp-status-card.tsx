@@ -23,8 +23,12 @@ export function WhatsAppStatusCard() {
     try {
       setChecking(true);
       const inst = await getWhatsAppInstanceAction();
-      setInstance(inst);
       const checkRes = await checkWhatsAppConnectionAction();
+      setInstance({
+        ...inst,
+        status: checkRes.status,
+        phone: checkRes.phone || inst.phone || '',
+      });
       setStatus(checkRes.status);
     } catch (e) {
       // mantém o status atual em caso de erro transitório
@@ -51,7 +55,7 @@ export function WhatsAppStatusCard() {
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-bold text-base text-white">
-                    WhatsApp (Evolution API)
+                    WhatsApp (Motor Embutido)
                   </h4>
                   <Badge
                     variant="outline"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, DollarSign, Calendar, FileText, Send, CheckCircle2, Briefcase, User } from 'lucide-react';
+import { Plus, DollarSign, Calendar, FileText, Send, CheckCircle2, Briefcase, User, Phone } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,7 @@ export function CreateInvoiceDialog({
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
   const [document, setDocument] = useState('');
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -75,6 +76,7 @@ export function CreateInvoiceDialog({
     if (found) {
       setClientName(found.name || '');
       setDocument(found.document || '');
+      setClientPhone(found.phone || '');
     }
   };
 
@@ -85,10 +87,13 @@ export function CreateInvoiceDialog({
     try {
       const res = await createInvoiceAction({
         clientName: clientName || 'Cliente Exemplo',
+        clientId: selectedClientId || undefined,
+        clientPhone: clientPhone || undefined,
         amount: parseFloat(amount) || 150.0,
         dueDate: dueDate || new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
         description: description || 'Cobrança Gerada no ServiceZap',
         issueNfe,
+        sendWhatsApp,
       });
 
       if (res.success && res.data) {
@@ -96,7 +101,7 @@ export function CreateInvoiceDialog({
           onInvoiceCreated(res.data);
         }
       } else {
-        alert(`Erro ao criar fatura no Appwrite: ${res.error}`);
+        alert(`Erro ao criar fatura: ${res.error}`);
       }
     } catch (err: any) {
       console.error('Erro ao gerar fatura:', err);
@@ -104,7 +109,10 @@ export function CreateInvoiceDialog({
       setLoading(false);
       onOpenChange(false);
       // Reset form
+      setSelectedClientId('');
+      setSelectedServiceId('');
       setClientName('');
+      setClientPhone('');
       setDocument('');
       setAmount('');
       setDueDate('');
@@ -188,6 +196,23 @@ export function CreateInvoiceDialog({
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
+                WhatsApp do Cliente (com DDD)
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                <Input
+                  placeholder="Ex: 5511999998888"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  className="pl-9 h-9 text-xs rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
                 CPF / CNPJ
               </Label>
               <Input
@@ -197,9 +222,7 @@ export function CreateInvoiceDialog({
                 className="h-9 text-xs rounded-xl"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
                 Valor Total (R$)
@@ -217,7 +240,9 @@ export function CreateInvoiceDialog({
                 />
               </div>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
                 Data de Vencimento
@@ -236,18 +261,18 @@ export function CreateInvoiceDialog({
                 showShortcuts
               />
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
-              Descrição do Serviço / Procedimento
-            </Label>
-            <Input
-              placeholder="Ex: Sessão de Fisioterapia Domiciliar"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="h-9 text-xs rounded-xl"
-            />
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-[#2B2B2B] dark:text-neutral-300">
+                Descrição do Serviço / Procedimento
+              </Label>
+              <Input
+                placeholder="Ex: Sessão de Fisioterapia Domiciliar"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
           </div>
 
           {/* Integrações Automáticas */}

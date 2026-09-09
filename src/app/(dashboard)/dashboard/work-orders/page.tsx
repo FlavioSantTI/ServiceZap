@@ -14,9 +14,9 @@ import { fetchServicesAction } from '@/app/actions/services';
 import { mockWorkOrders, mockClients, mockServices } from '@/lib/mock-data';
 
 export default function WorkOrdersPage() {
-  const [workOrders, setWorkOrders] = useState<Partial<WorkOrderDocument>[]>(mockWorkOrders);
-  const [clients, setClients] = useState<Partial<ClientDocument>[]>(mockClients);
-  const [services, setServices] = useState<Partial<ServiceDocument>[]>(mockServices);
+  const [workOrders, setWorkOrders] = useState<Partial<WorkOrderDocument>[]>([]);
+  const [clients, setClients] = useState<Partial<ClientDocument>[]>([]);
+  const [services, setServices] = useState<Partial<ServiceDocument>[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
@@ -32,9 +32,9 @@ export default function WorkOrdersPage() {
         fetchServicesAction(),
       ]);
 
-      if (woData && woData.length > 0) setWorkOrders(woData);
-      if (cliData && cliData.length > 0) setClients(cliData);
-      if (srvData && srvData.length > 0) setServices(srvData);
+      setWorkOrders(woData || []);
+      setClients(cliData || []);
+      setServices(srvData || []);
     } catch (err) {
       console.error('Erro ao carregar dados de O.S.:', err);
     } finally {
@@ -57,17 +57,22 @@ export default function WorkOrdersPage() {
   };
 
   // Métricas Financeiras / Quantidades
-  const totalQuotesValue = workOrders
-    .filter((wo) => wo.type === 'quote' && wo.status !== 'rejected')
-    .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const openQuotes = workOrders.filter(
+    (wo) => wo.type === 'quote' && wo.status !== 'rejected' && wo.status !== 'billed'
+  );
+  const totalQuotesValue = openQuotes.reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
-  const activeOSCount = workOrders.filter(
+  const inProgressOS = workOrders.filter(
     (wo) => wo.type === 'work_order' && (wo.status === 'approved' || wo.status === 'in_execution')
-  ).length;
+  );
+  const activeOSCount = inProgressOS.length;
 
-  const readyToBillCount = workOrders.filter(
-    (wo) => wo.type === 'work_order' && wo.status === 'completed'
-  ).length;
+  const readyOrBilledOS = workOrders.filter(
+    (wo) => wo.type === 'work_order' && (wo.status === 'completed' || wo.status === 'billed')
+  );
+  const readyToBillCount = readyOrBilledOS.length;
+  const billedCount = workOrders.filter((wo) => wo.status === 'billed').length;
+  const completedCount = workOrders.filter((wo) => wo.status === 'completed').length;
 
   return (
     <div className="space-y-6">
@@ -116,6 +121,9 @@ export default function WorkOrdersPage() {
               <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">
                 R$ {totalQuotesValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                {openQuotes.length} {openQuotes.length === 1 ? 'proposta aguardando' : 'propostas aguardando'}
+              </p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
               <FileText className="h-5 w-5" />
@@ -132,6 +140,9 @@ export default function WorkOrdersPage() {
               <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">
                 {activeOSCount}
               </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                {inProgressOS.filter((o) => o.status === 'in_execution').length} em execução • {inProgressOS.filter((o) => o.status === 'approved').length} aprovadas
+              </p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-[#E8622C]">
               <Clock className="h-5 w-5" />
@@ -147,6 +158,9 @@ export default function WorkOrdersPage() {
               </p>
               <p className="text-xl font-extrabold text-[#E8622C] mt-1">
                 {readyToBillCount}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                {completedCount} concluídas • {billedCount} faturadas PIX
               </p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-[#E8622C]">

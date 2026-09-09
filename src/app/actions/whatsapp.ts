@@ -6,25 +6,27 @@ import { WhatsAppInstanceDocument, WhatsAppStatus, MessageDocument } from '@/typ
 import { getEmbeddedWhatsAppEngine } from '@/lib/whatsapp/embeddedEngine';
 import { WhatsAppSyncService, sanitizeWhatsAppJid } from '@/lib/services/whatsappSyncService';
 import { saveMediaBuffer } from '@/lib/utils/mediaStorage';
+import { getTenantId } from '@/lib/utils/getTenantId';
 import { mockWhatsAppInstance } from '@/lib/mock-data';
 import { revalidatePath } from 'next/cache';
 
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID || 'servicezap_db';
 const COLLECTION_WHATSAPP = process.env.APPWRITE_COLLECTION_WHATSAPP || 'whatsapp_instances';
 const COLLECTION_MESSAGES = process.env.APPWRITE_MESSAGES_COLLECTION_ID || 'messages';
-const DEFAULT_INSTANCE_NAME = process.env.WHATSAPP_SESSION_NAME || 'servicezap_main';
 
 /**
- * Obtém a instância de WhatsApp ativa no Appwrite sincronizada com o motor embutido
+ * Obtém a instância de WhatsApp ativa no Appwrite isolada pelo tenant da sessão
  */
 export async function getWhatsAppInstanceAction(): Promise<Partial<WhatsAppInstanceDocument>> {
   try {
-    const engine = getEmbeddedWhatsAppEngine();
+    const tenantId = await getTenantId();
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     const engineStatus = engine.getStatus();
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
       return {
         ...mockWhatsAppInstance,
+        tenantId,
         status: engineStatus.status,
         phone: engineStatus.phone || mockWhatsAppInstance.phone,
       };
@@ -34,19 +36,19 @@ export async function getWhatsAppInstanceAction(): Promise<Partial<WhatsAppInsta
     const response = await databases.listDocuments<WhatsAppInstanceDocument>(
       DATABASE_ID,
       COLLECTION_WHATSAPP,
-      [Query.limit(1)]
+      [Query.equal('tenantId', tenantId), Query.limit(1)]
     );
 
     if (response.documents.length === 0) {
-      // Cria instância inicial padrão
+      // Cria instância inicial padrão para o tenant
       const newInst = await databases.createDocument<WhatsAppInstanceDocument>(
         DATABASE_ID,
         COLLECTION_WHATSAPP,
         ID.unique(),
         {
-          tenantId: 'tenant_01',
-          instanceName: DEFAULT_INSTANCE_NAME,
-          instanceId: `inst_${DEFAULT_INSTANCE_NAME}`,
+          tenantId,
+          instanceName: `whatsapp_${tenantId}`,
+          instanceId: `inst_${tenantId}`,
           status: engineStatus.status,
           phone: engineStatus.phone || '',
           updatedAt: new Date().toISOString(),
@@ -68,7 +70,7 @@ export async function getWhatsAppInstanceAction(): Promise<Partial<WhatsAppInsta
 }
 
 /**
- * Solicita o Pairing Code nativo de 8 dígitos (Sem QR Code e sem Docker)
+ * Solicita o Pairing Code nativo de 8 dígitos para o tenant logado
  */
 export async function requestPairingCodeAction(phoneNumber: string): Promise<{
   success: boolean;
@@ -76,18 +78,19 @@ export async function requestPairingCodeAction(phoneNumber: string): Promise<{
   error?: string;
 }> {
   try {
+    const tenantId = await getTenantId();
     const cleanPhone = sanitizeWhatsAppJid(phoneNumber);
     if (!cleanPhone || cleanPhone.length < 10) {
       return { success: false, error: 'Por favor, informe um número válido com DDD (ex: 5511999998888).' };
     }
 
-    // Chama o motor nativo embutido
-    const engine = getEmbeddedWhatsAppEngine();
+    // Chama o motor nativo embutido do tenant
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     const pairingCode = await engine.requestPairingCode(cleanPhone);
 
     const instance = await getWhatsAppInstanceAction();
 
-    // Registra o status de 'connecting' no Appwrite
+    // Registra o status de 'connecting' no Appwrite para este tenant
     if (process.env.APPWRITE_API_KEY && instance.$id && instance.$id !== 'wa_01') {
       try {
         const { databases } = await createAdminClient();
@@ -97,7 +100,7 @@ export async function requestPairingCodeAction(phoneNumber: string): Promise<{
           updatedAt: new Date().toISOString(),
         });
       } catch (dbErr) {
-        console.warn('[WhatsAppAction] Aviso ao salvar status no Appwrite:', dbErr);
+        console.warn(`[WhatsAppAction][${tenantId}] Aviso ao salvar status no Appwrite:`, dbErr);
       }
     }
 
@@ -122,7 +125,7 @@ export async function requestPairingCodeAction(phoneNumber: string): Promise<{
 }
 
 /**
- * Checa o estado da conexão do motor incorporado e sincroniza com o Appwrite
+ * Checa o estado da conexão do motor incorporado do tenant e sincroniza com o Appwrite
  */
 export async function checkWhatsAppConnectionAction(): Promise<{
   status: WhatsAppStatus;
@@ -130,7 +133,8 @@ export async function checkWhatsAppConnectionAction(): Promise<{
   phone?: string;
 }> {
   try {
-    const engine = getEmbeddedWhatsAppEngine();
+    const tenantId = await getTenantId();
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     const { status, phone } = engine.getStatus();
 
     const instance = await getWhatsAppInstanceAction();
@@ -140,7 +144,7 @@ export async function checkWhatsAppConnectionAction(): Promise<{
         const { databases } = await createAdminClient();
         await databases.updateDocument(DATABASE_ID, COLLECTION_WHATSAPP, instance.$id, {
           status,
-          phone: phone || instance.phone || '',
+          phone: phone !== undefined ? phone : (instance.phone || ''),
           updatedAt: new Date().toISOString(),
         });
       } catch (e) {
@@ -153,20 +157,20 @@ export async function checkWhatsAppConnectionAction(): Promise<{
 
     return {
       status,
-      instanceName: DEFAULT_INSTANCE_NAME,
-      phone,
+      instanceName: `whatsapp_${tenantId}`,
+      phone: phone || instance.phone,
     };
   } catch (error) {
     return {
       status: 'disconnected',
-      instanceName: DEFAULT_INSTANCE_NAME,
+      instanceName: 'whatsapp_default',
     };
   }
 }
 
 /**
- * Envio direto de mensagem pela UI através do motor incorporado Baileys
- * 1. Grava 'pending' no Appwrite
+ * Envio direto de mensagem pela UI através do motor incorporado Baileys do tenant
+ * 1. Grava 'pending' no Appwrite com tenantId
  * 2. Envia via socket em memória
  * 3. Atualiza 'sent' com o WAMID real no Appwrite
  */
@@ -179,6 +183,7 @@ export async function sendWhatsAppMessageDirectAction(
   error?: string;
 }> {
   try {
+    const tenantId = await getTenantId();
     const cleanPhone = sanitizeWhatsAppJid(phoneNumber);
     if (!cleanPhone) {
       return { success: false, error: 'Número de telefone inválido.' };
@@ -207,18 +212,18 @@ export async function sendWhatsAppMessageDirectAction(
             origin: 'app_ui',
             whatsapp_message_id: initialWamid,
             created_at: new Date().toISOString(),
-            tenantId: 'tenant_01',
+            tenantId,
           }
         );
         docId = created.$id;
       } catch (dbErr) {
-        console.warn('[WhatsAppAction] Não foi possível salvar mensagem pendente no Appwrite:', dbErr);
+        console.warn(`[WhatsAppAction][${tenantId}] Não foi possível salvar mensagem pendente no Appwrite:`, dbErr);
       }
     }
 
-    // 2. Disparo direto pelo motor nativo Baileys em memória
+    // 2. Disparo direto pelo motor nativo Baileys do tenant em memória
     let realWamid = initialWamid;
-    const engine = getEmbeddedWhatsAppEngine();
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
 
     try {
       const sendResult = await engine.sendTextMessage(cleanPhone, content.trim());
@@ -227,8 +232,7 @@ export async function sendWhatsAppMessageDirectAction(
         WhatsAppSyncService.registerAppSentWamid(realWamid);
       }
     } catch (engineErr: any) {
-      console.warn('[WhatsAppAction] Erro no envio via motor embutido:', engineErr.message);
-      // Se não conectado ou erro, falha a ação
+      console.warn(`[WhatsAppAction][${tenantId}] Erro no envio via motor embutido:`, engineErr.message);
       return {
         success: false,
         error: engineErr.message || 'WhatsApp não conectado.',
@@ -245,6 +249,7 @@ export async function sendWhatsAppMessageDirectAction(
       origin: 'app_ui',
       whatsapp_message_id: realWamid,
       created_at: new Date().toISOString(),
+      tenantId,
     };
 
     if (process.env.APPWRITE_API_KEY && docId.startsWith('msg_') === false) {
@@ -261,7 +266,7 @@ export async function sendWhatsAppMessageDirectAction(
         );
         finalDoc = JSON.parse(JSON.stringify(updated));
       } catch (upErr) {
-        console.warn('[WhatsAppAction] Erro ao atualizar status no Appwrite:', upErr);
+        console.warn(`[WhatsAppAction][${tenantId}] Erro ao atualizar status no Appwrite:`, upErr);
       }
     }
 
@@ -279,7 +284,7 @@ export async function sendWhatsAppMessageDirectAction(
 }
 
 /**
- * Envio de mídia (Imagem, Vídeo, Áudio ou Documento) via FormData e motor Baileys
+ * Envio de mídia (Imagem, Vídeo, Áudio ou Documento) via FormData e motor Baileys do tenant
  */
 export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise<{
   success: boolean;
@@ -287,6 +292,7 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
   error?: string;
 }> {
   try {
+    const tenantId = await getTenantId();
     const phoneNumber = formData.get('phoneNumber') as string;
     const mediaType = formData.get('mediaType') as 'image' | 'video' | 'audio' | 'document';
     const caption = (formData.get('caption') as string) || '';
@@ -327,7 +333,7 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
             origin: 'app_ui',
             whatsapp_message_id: initialWamid,
             created_at: new Date().toISOString(),
-            tenantId: 'tenant_01',
+            tenantId,
             mediaType,
             mediaUrl,
             mimeType,
@@ -336,7 +342,7 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
         );
         docId = created.$id;
       } catch (dbErr) {
-        console.warn('[WhatsAppAction] Erro ao salvar mensagem com atributos de mídia no Appwrite, tentando modo reduzido:', dbErr);
+        console.warn(`[WhatsAppAction][${tenantId}] Erro ao salvar mensagem com atributos de mídia no Appwrite:`, dbErr);
         try {
           const { databases } = await createAdminClient();
           const fallbackTag = `[Mídia: ${mediaType}] ${mediaUrl}`;
@@ -354,18 +360,18 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
               origin: 'app_ui',
               whatsapp_message_id: initialWamid,
               created_at: new Date().toISOString(),
-              tenantId: 'tenant_01',
+              tenantId,
             }
           );
           docId = createdFallback.$id;
         } catch {
-          // fallback silencioso se Appwrite falhar totalmente
+          // fallback silencioso
         }
       }
     }
 
-    // 2. Envio via motor nativo Baileys
-    const engine = getEmbeddedWhatsAppEngine();
+    // 2. Envio via motor nativo Baileys do tenant
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     let realWamid = initialWamid;
     try {
       const sendResult = await engine.sendMediaMessage({
@@ -380,7 +386,7 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
         realWamid = sendResult.wamid;
       }
     } catch (engineErr: any) {
-      console.warn('[WhatsAppAction] Erro no envio de mídia via motor embutido:', engineErr.message);
+      console.warn(`[WhatsAppAction][${tenantId}] Erro no envio de mídia via motor embutido:`, engineErr.message);
       return {
         success: false,
         error: engineErr.message || 'WhatsApp não conectado.',
@@ -397,6 +403,7 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
       origin: 'app_ui',
       whatsapp_message_id: realWamid,
       created_at: new Date().toISOString(),
+      tenantId,
       mediaType,
       mediaUrl,
       mimeType,
@@ -417,7 +424,7 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
         );
         finalDoc = JSON.parse(JSON.stringify(updated));
       } catch (upErr) {
-        console.warn('[WhatsAppAction] Erro ao atualizar status no Appwrite:', upErr);
+        console.warn(`[WhatsAppAction][${tenantId}] Erro ao atualizar status no Appwrite:`, upErr);
       }
     }
 
@@ -435,11 +442,12 @@ export async function sendWhatsAppMediaDirectAction(formData: FormData): Promise
 }
 
 /**
- * Desconecta a sessão do WhatsApp no motor embutido
+ * Desconecta a sessão do WhatsApp no motor embutido do tenant
  */
 export async function disconnectWhatsAppAction(): Promise<{ success: boolean }> {
   try {
-    const engine = getEmbeddedWhatsAppEngine();
+    const tenantId = await getTenantId();
+    const engine = getEmbeddedWhatsAppEngine(tenantId);
     await engine.logout();
 
     const instance = await getWhatsAppInstanceAction();
@@ -448,6 +456,7 @@ export async function disconnectWhatsAppAction(): Promise<{ success: boolean }> 
         const { databases } = await createAdminClient();
         await databases.updateDocument(DATABASE_ID, COLLECTION_WHATSAPP, instance.$id, {
           status: 'disconnected',
+          phone: '',
           updatedAt: new Date().toISOString(),
         });
       } catch (e) {
@@ -464,7 +473,7 @@ export async function disconnectWhatsAppAction(): Promise<{ success: boolean }> 
 }
 
 /**
- * Busca histórico de mensagens de uma conversa com credenciais admin do Appwrite
+ * Busca histórico de mensagens de uma conversa filtradas pelo tenantId do usuário
  */
 export async function getWhatsAppMessagesAction(
   phone?: string,
@@ -475,8 +484,10 @@ export async function getWhatsAppMessagesAction(
       return [];
     }
 
+    const tenantId = await getTenantId();
     const { databases } = await createAdminClient();
     const queries = [
+      Query.equal('tenantId', tenantId),
       Query.orderDesc('created_at'),
       Query.limit(limit),
     ];
@@ -506,5 +517,44 @@ export async function getWhatsAppMessagesAction(
   } catch (error) {
     console.error('[WhatsAppAction] Erro ao buscar mensagens via Server Action:', error);
     return [];
+  }
+}
+
+/**
+ * Limpa o histórico de mensagens do tenant ativo no Appwrite
+ */
+export async function clearWhatsAppHistoryAction(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const tenantId = await getTenantId();
+    if (!process.env.APPWRITE_API_KEY) {
+      return { success: true };
+    }
+
+    const { databases } = await createAdminClient();
+    const list = await databases.listDocuments<MessageDocument>(
+      DATABASE_ID,
+      COLLECTION_MESSAGES,
+      [Query.equal('tenantId', tenantId), Query.limit(100)]
+    );
+
+    for (const doc of list.documents) {
+      try {
+        await databases.deleteDocument(DATABASE_ID, COLLECTION_MESSAGES, doc.$id);
+      } catch (delErr) {
+        // continua
+      }
+    }
+
+    try {
+      revalidatePath('/dashboard/whatsapp');
+      revalidatePath('/dashboard');
+    } catch {
+      // no-op
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[WhatsAppAction] Erro ao limpar histórico de mensagens:', error);
+    return { success: false, error: error.message || 'Falha ao limpar histórico.' };
   }
 }
