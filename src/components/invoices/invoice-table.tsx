@@ -149,26 +149,26 @@ export function InvoiceTable({
       {/* Table Filters & Actions */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por cliente ou descrição..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-9 text-xs rounded-xl bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800"
+            className="pl-9 h-9 text-xs rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
-            <Filter className="h-3.5 w-3.5 text-neutral-400 ml-2" />
+          <div className="flex items-center gap-1.5 bg-muted p-1 rounded-xl border border-border text-xs">
+            <Filter className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             {(['all', 'pending', 'paid', 'overdue'] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                   statusFilter === st
-                    ? 'bg-white dark:bg-neutral-800 text-[#E8622C] shadow-sm font-bold'
-                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
+                    ? 'bg-card text-foreground shadow-sm font-bold border border-border/50'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {st === 'all'
@@ -185,38 +185,38 @@ export function InvoiceTable({
       </div>
 
       {/* Main Table */}
-      <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50/80 dark:bg-slate-950/60">
-            <TableRow>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Cliente</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Valor</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Vencimento</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Status Fatura</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Nota Fiscal</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-700 dark:text-slate-300">Ações</TableHead>
+          <TableHeader className="bg-muted/60">
+            <TableRow className="border-border">
+              <TableHead className="text-xs font-bold text-foreground">Cliente</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Valor</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Vencimento</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Status Fatura</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Nota Fiscal</TableHead>
+              <TableHead className="text-right text-xs font-bold text-foreground">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredInvoices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-xs text-slate-400">
+              <TableRow className="border-border">
+                <TableCell colSpan={6} className="text-center py-8 text-xs text-muted-foreground">
                   Nenhuma fatura encontrada.
                 </TableCell>
               </TableRow>
             ) : (
               filteredInvoices.map((inv) => (
-                <TableRow key={inv.$id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                  <TableCell className="font-medium text-xs text-slate-900 dark:text-slate-100">
+                <TableRow key={inv.$id} className="border-border hover:bg-muted/40 transition-colors">
+                  <TableCell className="font-medium text-xs text-foreground">
                     <div>
-                      <p className="font-bold">{inv.clientName}</p>
-                      <p className="text-[11px] text-slate-400 font-normal">{inv.description}</p>
+                      <p className="font-bold text-foreground">{inv.clientName}</p>
+                      <p className="text-[11px] text-muted-foreground font-normal">{inv.description}</p>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                  <TableCell className="text-xs font-bold text-foreground">
                     R$ {inv.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                  <TableCell className="text-xs text-muted-foreground">
                     {inv.dueDate}
                   </TableCell>
                   <TableCell>{getStatusBadge(inv.status)}</TableCell>
@@ -228,7 +228,7 @@ export function InvoiceTable({
                         disabled={sendingWhatsAppId === inv.$id}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-500 hover:bg-emerald-500/10 dark:text-emerald-400"
+                        className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-muted"
                         title="Enviar Cobrança por WhatsApp"
                       >
                         <Send className={`h-4 w-4 ${sendingWhatsAppId === inv.$id ? 'animate-spin' : ''}`} />
@@ -239,7 +239,7 @@ export function InvoiceTable({
                           onClick={() => onSelectPix && onSelectPix(inv)}
                           size="sm"
                           variant="ghost"
-                          className="h-8 w-8 p-0 text-[#E8622C] hover:text-orange-500 hover:bg-orange-500/10"
+                          className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-muted"
                           title="Ver QR Code PIX"
                         >
                           <QrCode className="h-4 w-4" />
@@ -247,33 +247,33 @@ export function InvoiceTable({
                       )}
 
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="h-8 w-8 p-0 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <DropdownMenuTrigger className="h-8 w-8 p-0 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                           <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="text-xs">
-                          <DropdownMenuItem onClick={() => handleSendWhatsApp(inv)}>
-                            <Send className="mr-2 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <DropdownMenuContent align="end" className="text-xs bg-card border-border text-foreground">
+                          <DropdownMenuItem onClick={() => handleSendWhatsApp(inv)} className="hover:bg-muted cursor-pointer">
+                            <Send className="mr-2 h-3.5 w-3.5 text-primary" />
                             Enviar / Reenviar no WhatsApp
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onSelectReceipt && onSelectReceipt(inv)}>
-                            <FileText className="mr-2 h-3.5 w-3.5 text-slate-700 dark:text-slate-200" />
+                          <DropdownMenuItem onClick={() => onSelectReceipt && onSelectReceipt(inv)} className="hover:bg-muted cursor-pointer">
+                            <FileText className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                             Gerar Recibo de Serviço
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onSelectPix && onSelectPix(inv)}>
-                            <QrCode className="mr-2 h-3.5 w-3.5 text-[#E8622C]" />
+                          <DropdownMenuItem onClick={() => onSelectPix && onSelectPix(inv)} className="hover:bg-muted cursor-pointer">
+                            <QrCode className="mr-2 h-3.5 w-3.5 text-primary" />
                             Exibir QR Code PIX
                           </DropdownMenuItem>
                           {inv.nfeStatus === 'authorized' && (
-                            <DropdownMenuItem>
-                              <FileText className="mr-2 h-3.5 w-3.5 text-[#E8622C]" />
+                            <DropdownMenuItem className="hover:bg-muted cursor-pointer">
+                              <FileText className="mr-2 h-3.5 w-3.5 text-primary" />
                               Baixar NF-e (PDF)
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-border" />
                           {inv.status !== 'paid' && (
                             <DropdownMenuItem
                               onClick={() => inv.$id && onStatusChange && onStatusChange(inv.$id, 'paid')}
-                              className="text-[#E8622C] font-semibold"
+                              className="text-primary font-semibold hover:bg-muted cursor-pointer"
                             >
                               <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
                               Marcar como Pago
@@ -281,7 +281,7 @@ export function InvoiceTable({
                           )}
                           <DropdownMenuItem
                             onClick={() => inv.$id && onDeleteInvoice && onDeleteInvoice(inv.$id)}
-                            className="text-rose-600 font-semibold"
+                            className="text-rose-600 font-semibold hover:bg-muted cursor-pointer"
                           >
                             <XCircle className="mr-2 h-3.5 w-3.5" />
                             Cancelar Cobrança

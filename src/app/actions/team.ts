@@ -22,21 +22,27 @@ export interface CreateTeamMemberInput {
   permissions: UserPermissions;
 }
 
-export async function fetchTeamMembersAction(tenantId: string = 'tenant_01'): Promise<UserDocument[]> {
+import { getCurrentUserAction } from '@/app/actions/auth';
+
+export async function fetchTeamMembersAction(tenantId?: string): Promise<UserDocument[]> {
   try {
+    const session = await getCurrentUserAction();
+    const activeTenantId = tenantId || session?.tenantId || 'tenant_01';
+
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
-      return JSON.parse(JSON.stringify(mockTeamUsers)) as any;
+      const filtered = mockTeamUsers.filter((u) => u.tenantId === activeTenantId);
+      return JSON.parse(JSON.stringify(filtered)) as any;
     }
 
     const { databases } = await createAdminClient();
     const response = await databases.listDocuments(
       DATABASE_ID,
       COLLECTION_USERS,
-      [Query.equal('tenantId', tenantId), Query.orderAsc('$createdAt')]
+      [Query.equal('tenantId', activeTenantId), Query.orderAsc('$createdAt')]
     );
 
     if (response.documents.length === 0) {
-      return JSON.parse(JSON.stringify(mockTeamUsers)) as any;
+      return [];
     }
 
     // Normaliza permissões de string JSON para objeto se necessário
@@ -57,8 +63,8 @@ export async function fetchTeamMembersAction(tenantId: string = 'tenant_01'): Pr
 
     return JSON.parse(JSON.stringify(users)) as UserDocument[];
   } catch (error) {
-    console.warn('⚠️ Fallback para mockTeamUsers:', error);
-    return JSON.parse(JSON.stringify(mockTeamUsers)) as any;
+    console.error('❌ Erro ao buscar membros da equipe:', error);
+    return [];
   }
 }
 

@@ -173,11 +173,11 @@ export default function SuperAdminTenantsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[#2B2B2B] flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-[#E8622C]" />
+          <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-primary" />
             Empresas & Tenants Cadastrados
           </h1>
-          <p className="text-sm text-[#666666]">
+          <p className="text-xs text-muted-foreground">
             CRUD completo: cadastre, edite dados, ative/desative o acesso e gerencie os planos de cada empresa.
           </p>
         </div>
@@ -188,14 +188,14 @@ export default function SuperAdminTenantsPage() {
             size="sm"
             onClick={loadData}
             disabled={loading}
-            className="border-[#DECDBB] text-[#666666] hover:bg-[#FFF3EE]"
+            className="border-border text-foreground hover:bg-muted font-semibold rounded-xl cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
           <Button
             onClick={handleOpenCreate}
-            className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105 shadow-sm"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-warm-xs rounded-xl cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Nova Empresa
@@ -204,20 +204,20 @@ export default function SuperAdminTenantsPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-3 rounded-2xl border border-[#DECDBB] bg-white p-4 shadow-xs">
+      <div className="flex flex-col md:flex-row gap-3 rounded-2xl border border-border bg-card p-4 shadow-warm-xs">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888888]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome da empresa, CNPJ/CPF ou e-mail do admin..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#FAF6F2] border-[#DECDBB] text-xs h-10"
+            className="pl-9 bg-background border-border text-foreground text-xs h-10 rounded-xl"
           />
         </div>
 
         <div className="flex gap-2">
           <Select value={planFilter} onValueChange={(val: string | null) => setPlanFilter(val || 'all')}>
-            <SelectTrigger className="w-[160px] bg-[#FAF6F2] border-[#DECDBB] text-xs h-10">
+            <SelectTrigger className="w-[160px] bg-background border-border text-foreground text-xs h-10 rounded-xl">
               <SelectValue placeholder="Plano" />
             </SelectTrigger>
             <SelectContent>
@@ -230,7 +230,7 @@ export default function SuperAdminTenantsPage() {
           </Select>
 
           <Select value={statusFilter} onValueChange={(val: string | null) => setStatusFilter(val || 'all')}>
-            <SelectTrigger className="w-[160px] bg-[#FAF6F2] border-[#DECDBB] text-xs h-10">
+            <SelectTrigger className="w-[160px] bg-background border-border text-foreground text-xs h-10 rounded-xl">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -245,10 +245,10 @@ export default function SuperAdminTenantsPage() {
       </div>
 
       {/* Tenants Table */}
-      <div className="rounded-2xl border border-[#DECDBB] bg-white shadow-xs overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card shadow-warm-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-[#DECDBB] bg-[#FAF6F2] text-xs font-bold text-[#8A503C] uppercase">
+            <thead className="border-b border-border bg-muted/40 text-xs font-bold text-muted-foreground uppercase">
               <tr>
                 <th className="py-3.5 px-4">Empresa / Documento</th>
                 <th className="py-3.5 px-4">Admin Responsável</th>
@@ -278,35 +278,35 @@ export default function SuperAdminTenantsPage() {
                   const isCurrentAction = actionLoading === tenant.$id;
 
                   return (
-                    <tr key={tenant.$id} className="hover:bg-[#FAF6F2]/60 transition-colors">
+                    <tr key={tenant.$id} className="hover:bg-muted/40 transition-colors">
                       
                       {/* Empresa / CNPJ */}
                       <td className="py-4 px-4">
-                        <div className="font-bold text-[#2B2B2B] text-sm">{tenant.name}</div>
+                        <div className="font-bold text-foreground text-sm">{tenant.name}</div>
                         {tenant.companyName && tenant.companyName !== tenant.name && (
-                          <div className="text-xs text-[#666666] line-clamp-1">{tenant.companyName}</div>
+                          <div className="text-xs text-muted-foreground line-clamp-1">{tenant.companyName}</div>
                         )}
-                        <div className="text-xs text-[#888888] font-mono mt-0.5">{tenant.document}</div>
-                        {tenant.phone && <div className="text-xs text-[#888888]">{tenant.phone}</div>}
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">{tenant.document}</div>
+                        {tenant.phone && <div className="text-xs text-muted-foreground">{tenant.phone}</div>}
                       </td>
 
                       {/* Admin Responsável */}
                       <td className="py-4 px-4">
-                        <div className="font-semibold text-[#333333]">{tenant.ownerName || 'Admin Master'}</div>
-                        <div className="text-xs text-[#666666]">{tenant.ownerEmail || tenant.email}</div>
+                        <div className="font-semibold text-foreground">{tenant.ownerName || 'Admin Master'}</div>
+                        <div className="text-xs text-muted-foreground">{tenant.ownerEmail || tenant.email}</div>
                       </td>
 
                       {/* Plano */}
                       <td className="py-4 px-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black uppercase bg-[#FFF3EE] text-[#E8622C] border border-[#F0806B]/20">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black uppercase bg-primary/15 text-primary border border-primary/20">
                           {tenant.plan || 'Free'}
                         </span>
                       </td>
 
                       {/* Limite de Equipe */}
-                      <td className="py-4 px-4 font-semibold text-[#444444]">
+                      <td className="py-4 px-4 font-semibold text-foreground">
                         <div className="flex items-center gap-1.5">
-                          <Users className="h-4 w-4 text-[#8A503C]" />
+                          <Users className="h-4 w-4 text-primary" />
                           <span>{tenant.maxUsers || 1} colaborador{(tenant.maxUsers || 1) > 1 ? 'es' : ''}</span>
                         </div>
                       </td>
@@ -319,7 +319,7 @@ export default function SuperAdminTenantsPage() {
                             disabled={isCurrentAction}
                             onCheckedChange={() => handleToggleStatus(tenant)}
                           />
-                          <span className={`text-xs font-bold ${isActive ? 'text-[#10B981]' : isSuspended ? 'text-[#D97706]' : 'text-[#DC2626]'}`}>
+                          <span className={`text-xs font-bold ${isActive ? 'text-emerald-600' : isSuspended ? 'text-amber-600' : 'text-rose-600'}`}>
                             {isActive ? 'Ativo' : isSuspended ? 'Suspenso' : 'Inativo'}
                           </span>
                         </div>
@@ -333,7 +333,7 @@ export default function SuperAdminTenantsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenEdit(tenant)}
-                            className="h-8 w-8 p-0 text-[#666] hover:text-[#E8622C] hover:bg-orange-50 rounded-lg"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg cursor-pointer"
                             title="Editar Dados da Empresa"
                           >
                             <Edit2 className="h-4 w-4" />
@@ -344,7 +344,7 @@ export default function SuperAdminTenantsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setTenantToDelete(tenant)}
-                            className="h-8 w-8 p-0 text-[#888] hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 rounded-lg cursor-pointer"
                             title="Excluir Empresa"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -352,37 +352,37 @@ export default function SuperAdminTenantsPage() {
 
                           {/* Dropdown com mais opções */}
                           <DropdownMenu>
-                            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-[#FAF6F2] text-[#666666] hover:text-[#2B2B2B] transition-colors">
+                            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                               <MoreVertical className="h-4 w-4" />
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-52 bg-white border-[#DECDBB]">
-                              <DropdownMenuLabel className="text-xs text-[#888888]">Mudar Plano</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'starter', 2)}>
+                            <DropdownMenuContent align="end" className="w-52 bg-card border-border shadow-xl">
+                              <DropdownMenuLabel className="text-xs text-muted-foreground">Mudar Plano</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'starter', 2)} className="cursor-pointer">
                                 Starter (2 users)
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'pro', 5)}>
+                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'pro', 5)} className="cursor-pointer">
                                 Pro (5 users)
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'enterprise', 15)}>
+                              <DropdownMenuItem onClick={() => handlePlanChange(tenant.$id, 'enterprise', 15)} className="cursor-pointer">
                                 Enterprise (15 users)
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-[#DECDBB]" />
-                              <DropdownMenuLabel className="text-xs text-[#888888]">Status Avançado</DropdownMenuLabel>
+                              <DropdownMenuSeparator className="bg-border" />
+                              <DropdownMenuLabel className="text-xs text-muted-foreground">Status Avançado</DropdownMenuLabel>
                               <DropdownMenuItem
                                 onClick={() => handleStatusChange(tenant.$id, 'active')}
-                                className="text-[#10B981]"
+                                className="text-emerald-600 cursor-pointer"
                               >
                                 Forçar Status Ativo
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleStatusChange(tenant.$id, 'suspended')}
-                                className="text-[#D97706]"
+                                className="text-amber-600 cursor-pointer"
                               >
                                 Suspender Acesso
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleStatusChange(tenant.$id, 'canceled')}
-                                className="text-[#DC2626]"
+                                className="text-rose-600 cursor-pointer"
                               >
                                 Cancelar Contrato
                               </DropdownMenuItem>
@@ -410,15 +410,15 @@ export default function SuperAdminTenantsPage() {
 
       {/* Modal de Confirmação de Exclusão / Cancelamento Seguro */}
       <Dialog open={!!tenantToDelete} onOpenChange={(open) => !open && setTenantToDelete(null)}>
-        <DialogContent className="max-w-lg bg-white border-[#DECDBB] text-[#2B2B2B] p-6 rounded-2xl shadow-xl">
+        <DialogContent className="max-w-lg bg-card border-border text-foreground p-6 rounded-2xl shadow-xl">
           <DialogHeader>
-            <div className="h-11 w-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-2">
+            <div className="h-11 w-11 rounded-xl bg-amber-500/15 text-amber-700 flex items-center justify-center mb-2">
               <Shield className="h-5 w-5" />
             </div>
-            <DialogTitle className="text-lg font-bold text-[#2B2B2B]">
+            <DialogTitle className="text-lg font-bold text-foreground">
               Gerenciar Exclusão / Cancelamento
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#666666]">
+            <DialogDescription className="text-xs text-muted-foreground">
               Como você deseja proceder com a empresa <strong>{tenantToDelete?.name}</strong> ({tenantToDelete?.document})?
             </DialogDescription>
           </DialogHeader>

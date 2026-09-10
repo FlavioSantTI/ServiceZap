@@ -22,10 +22,10 @@ export default async function WhatsAppDashboardPage() {
     <div className="space-y-6">
       {/* Title Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-          WhatsApp & Mensageria Híbrida
+        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
+          WhatsApp &amp; Mensageria Híbrida
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Gerencie a conexão da sua conta via Pairing Code e converse com seus clientes em tempo real.
         </p>
       </div>

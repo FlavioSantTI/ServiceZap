@@ -26,28 +26,28 @@ export function MetricCards({ invoices = [] }: MetricCardsProps) {
       value: `R$ ${totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: `${paidInvoices.length} faturas recebidas`,
       icon: DollarSign,
-      iconBg: 'bg-orange-500/15 text-[#E8622C] border-orange-500/25',
+      iconBg: 'bg-primary/15 text-primary border-primary/25',
     },
     {
       title: 'A Receber (Valor em Aberto)',
       value: `R$ ${totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: `${pendingInvoices.length} faturas abertas`,
       icon: Clock,
-      iconBg: 'bg-amber-500/15 text-amber-600 border-amber-500/25',
+      iconBg: 'bg-muted text-foreground border-border',
     },
     {
       title: 'Cobranças Vencidas',
       value: `R$ ${totalOverdue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: overdueInvoices.length > 0 ? `${overdueInvoices.length} em atraso` : 'Nenhum atraso',
       icon: AlertTriangle,
-      iconBg: 'bg-red-500/15 text-red-600 border-red-500/25',
+      iconBg: 'bg-rose-500/15 text-rose-700 border-rose-500/25',
     },
     {
       title: 'NF-e Emitidas (Focus)',
       value: `${totalNfeIssued} Notas`,
       change: '100% integradas',
       icon: FileCheck2,
-      iconBg: 'bg-[#F0806B]/20 text-[#E8622C] border-[#F0806B]/30',
+      iconBg: 'bg-primary/15 text-primary border-primary/25',
     },
   ];
 
@@ -56,24 +56,27 @@ export function MetricCards({ invoices = [] }: MetricCardsProps) {
       {metrics.map((item, index) => {
         const Icon = item.icon;
         return (
-          <Card key={index} className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm hover:shadow-warm-sm transition-all duration-200">
+          <Card 
+            key={index} 
+            className="rounded-2xl border border-border bg-card shadow-warm-xs hover:shadow-warm-sm transition-all duration-200 cursor-pointer group"
+          >
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   {item.title}
                 </span>
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${item.iconBg}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-105 ${item.iconBg}`}>
                   <Icon className="h-5 w-5" />
                 </div>
               </div>
 
               <div className="mt-3">
-                <h3 className="text-2xl font-extrabold text-[#2B2B2B] dark:text-[#FAF6F2] tracking-tight">
+                <h3 className="text-2xl font-black text-foreground tracking-tight">
                   {item.value}
                 </h3>
-                <div className="mt-1 flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  <ArrowUpRight className="h-3.5 w-3.5 text-[#E8622C]" />
-                  <span>{item.change}</span>
+                <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                  <ArrowUpRight className="h-3.5 w-3.5 text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  <span className="font-semibold">{item.change}</span>
                 </div>
               </div>
             </CardContent>

@@ -1,11 +1,7 @@
-import { redirect } from 'next/navigation';
 import { getCurrentUserAction } from '@/app/actions/auth';
+import { LandingPageView } from '@/components/landing/landing-page-view';
 
 export default async function Home() {
   const user = await getCurrentUserAction();
-  if (user) {
-    redirect('/dashboard');
-  } else {
-    redirect('/login');
-  }
+  return <LandingPageView isLoggedIn={Boolean(user)} />;
 }

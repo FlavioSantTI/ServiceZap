@@ -119,7 +119,7 @@ export default function InvoicesPage() {
           <Button
             onClick={() => setCreateInvoiceOpen(true)}
             size="sm"
-            className="h-9 gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs"
+            className="h-9 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-warm-xs"
           >
             <Plus className="h-4 w-4" />
             <span>Nova Cobrança</span>
@@ -129,57 +129,57 @@ export default function InvoicesPage() {
 
       {/* Cards de Métricas Financeiras */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <Card className="border border-border bg-card shadow-warm-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Faturado</p>
-              <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Faturado</p>
+              <p className="text-xl font-black text-foreground mt-1">
                 R$ {totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-foreground border border-border">
               <Receipt className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <Card className="border border-border bg-card shadow-warm-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-[#E8622C] uppercase tracking-wider">Recebido (Pago)</p>
-              <p className="text-xl font-extrabold text-[#E8622C] mt-1">
+              <p className="text-xs font-bold text-primary uppercase tracking-wider">Recebido (Pago)</p>
+              <p className="text-xl font-black text-foreground mt-1">
                 R$ {paidAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-[#E8622C]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
               <CheckCircle2 className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <Card className="border border-border bg-card shadow-warm-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">A Receber (Pendente)</p>
-              <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">A Receber (Pendente)</p>
+              <p className="text-xl font-black text-foreground mt-1">
                 R$ {pendingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-foreground border border-border">
               <Clock className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <Card className="border border-border bg-card shadow-warm-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Vencido</p>
-              <p className="text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">
+              <p className="text-xs font-bold text-rose-700 uppercase tracking-wider">Vencido</p>
+              <p className="text-xl font-black text-rose-700 mt-1">
                 R$ {overdueAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/15 text-rose-700 border border-rose-500/25">
               <AlertTriangle className="h-5 w-5" />
             </div>
           </CardContent>

@@ -49,72 +49,74 @@
 }
 
 :root {
-  --background: #FAF6F2;
-  --foreground: #2B2B2B;
-  --card: #FFFFFF;
-  --card-foreground: #2B2B2B;
-  --popover: #FFFFFF;
-  --popover-foreground: #2B2B2B;
-  --primary: #E8622C;
+  --background: #FDF6EC;
+  --foreground: #3A2A1D;
+  --card: #F4E8D6;
+  --card-foreground: #3A2A1D;
+  --popover: #FDF6EC;
+  --popover-foreground: #3A2A1D;
+  --primary: #F0663B;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFF1EB;
-  --secondary-foreground: #2B2B2B;
-  --muted: #F3ECE6;
-  --muted-foreground: #6B6560;
-  --accent: #FEE8DE;
-  --accent-foreground: #E8622C;
+  --secondary: #EDDBC0;
+  --secondary-foreground: #3A2A1D;
+  --muted: #EDDBC0;
+  --muted-foreground: #7A6653;
+  --accent: #EDDBC0;
+  --accent-foreground: #3A2A1D;
   --destructive: #DC2626;
-  --border: #F0E7DF;
-  --input: #EADBCE;
-  --ring: #E8622C;
-  --chart-1: #E8622C;
-  --chart-2: #F0806B;
-  --chart-3: #F5A27A;
-  --chart-4: #D9531E;
-  --chart-5: #2B2B2B;
+  --border: #E8D5BF;
+  --input: #E2CEB6;
+  --ring: #F0663B;
+  --chart-1: #F0663B;
+  --chart-2: #F5734A;
+  --chart-3: #D9502A;
+  --chart-4: #7A6653;
+  --chart-5: #3A2A1D;
   --radius: 0.875rem;
-  --sidebar: #2B2B2B;
-  --sidebar-foreground: #FAF6F2;
-  --sidebar-primary: #E8622C;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #383838;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #3D3D3D;
-  --sidebar-ring: #E8622C;
+  
+  /* Sidebar - Solid Terracotta Palette #AA6C52 */
+  --sidebar: #AA6C52;
+  --sidebar-foreground: #FBE1CF;
+  --sidebar-primary: #FDF6EC;
+  --sidebar-primary-foreground: #3A2A1D;
+  --sidebar-accent: #FDF6EC;
+  --sidebar-accent-foreground: #3A2A1D;
+  --sidebar-border: #965B43;
+  --sidebar-ring: #AA6C52;
 }
 
 .dark {
-  --background: #1C1B1A;
-  --foreground: #FAF6F2;
-  --card: #252423;
-  --card-foreground: #FAF6F2;
-  --popover: #252423;
-  --popover-foreground: #FAF6F2;
-  --primary: #F0806B;
-  --primary-foreground: #1C1B1A;
-  --secondary: #322F2D;
-  --secondary-foreground: #FAF6F2;
-  --muted: #322F2D;
-  --muted-foreground: #A8A29D;
-  --accent: #3D3531;
-  --accent-foreground: #F0806B;
-  --destructive: #EF4444;
-  --border: #3D3834;
-  --input: #4A443F;
-  --ring: #F0806B;
-  --chart-1: #F0806B;
-  --chart-2: #E8622C;
-  --chart-3: #F5A27A;
-  --chart-4: #D9531E;
-  --chart-5: #FAF6F2;
-  --sidebar: #181716;
-  --sidebar-foreground: #FAF6F2;
-  --sidebar-primary: #F0806B;
-  --sidebar-primary-foreground: #181716;
-  --sidebar-accent: #2A2826;
-  --sidebar-accent-foreground: #FAF6F2;
-  --sidebar-border: #33302D;
-  --sidebar-ring: #F0806B;
+  --background: #1C1713;
+  --foreground: #FDF6EC;
+  --card: #28211B;
+  --card-foreground: #FDF6EC;
+  --popover: #28211B;
+  --popover-foreground: #FDF6EC;
+  --primary: #F0663B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #352B24;
+  --secondary-foreground: #FDF6EC;
+  --muted: #3D322A;
+  --muted-foreground: #C8B5A3;
+  --accent: #F0663B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #E05244;
+  --border: #42362E;
+  --input: #42362E;
+  --ring: #F0663B;
+  --chart-1: #F0663B;
+  --chart-2: #F5734A;
+  --chart-3: #AA6C52;
+  --chart-4: #D48B68;
+  --chart-5: #E8B49B;
+  --sidebar: #AA6C52;
+  --sidebar-foreground: #FBE1CF;
+  --sidebar-primary: #FDF6EC;
+  --sidebar-primary-foreground: #3A2A1D;
+  --sidebar-accent: #FDF6EC;
+  --sidebar-accent-foreground: #3A2A1D;
+  --sidebar-border: #965B43;
+  --sidebar-ring: #AA6C52;
 }
 
 @layer base {
@@ -129,23 +131,31 @@
   }
 }
 
-/* Utilitários Especiais ServiceZap */
-.bg-gradient-warm {
-  background: linear-gradient(135deg, #F0806B 0%, #E8622C 100%);
+/* Utilitários Especiais ServiceZap - Camadas Sólidas */
+.bg-sidebar-solid {
+  background-color: var(--sidebar);
 }
 
-.bg-gradient-warm-soft {
-  background: linear-gradient(135deg, #FFF5F0 0%, #FAF0E8 100%);
+.bg-card-solid {
+  background-color: var(--card);
+}
+
+.bg-panel-highlight {
+  background-color: var(--muted);
+}
+
+.shadow-warm-xs {
+  box-shadow: 0 1px 3px rgba(58, 42, 29, 0.05);
 }
 
 .shadow-warm-sm {
-  box-shadow: 0 2px 10px -1px rgba(232, 98, 44, 0.08);
+  box-shadow: 0 2px 8px rgba(58, 42, 29, 0.07);
 }
 
 .shadow-warm-md {
-  box-shadow: 0 8px 24px -3px rgba(232, 98, 44, 0.12);
+  box-shadow: 0 6px 16px rgba(58, 42, 29, 0.09);
 }
 
 .shadow-warm-lg {
-  box-shadow: 0 16px 36px -4px rgba(232, 98, 44, 0.18);
+  box-shadow: 0 12px 24px rgba(58, 42, 29, 0.12);
 }

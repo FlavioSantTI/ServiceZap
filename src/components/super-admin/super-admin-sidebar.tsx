@@ -17,6 +17,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logoutAction } from '@/app/actions/auth';
 
 interface NavItem {
   title: string;
@@ -38,29 +39,29 @@ export function SuperAdminSidebar() {
   return (
     <aside
       className={cn(
-        'relative flex flex-col border-r border-[#2C2C2C] bg-[#1E1E1E] text-[#E0E0E0] transition-all duration-300 min-h-screen z-20',
+        'sticky top-0 h-screen flex flex-col border-r border-[#965B43] bg-[#AA6C52] text-[#FBE1CF] transition-all duration-300 z-20 shrink-0',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-[#2C2C2C]">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-[#965B43]">
         <Link href="/super-admin" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#F0806B] to-[#E8622C] p-2 shadow-warm-xs">
-            <Shield className="h-5 w-5 text-white" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FDF6EC] p-2 shadow-warm-xs">
+            <Shield className="h-5 w-5 text-[#AA6C52]" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
-                ServiceZap <span className="text-[10px] bg-[#E8622C] text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Master</span>
+              <span className="font-extrabold text-base tracking-tight text-[#FDF6EC] flex items-center gap-1.5">
+                ServiceZap <span className="text-xs bg-[#874E37] text-[#FDF6EC] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Master</span>
               </span>
-              <span className="text-[11px] text-[#A0A0A0]">Super Admin Panel</span>
+              <span className="text-xs text-[#FBE1CF]/80">Super Admin Panel</span>
             </div>
           )}
         </Link>
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg bg-[#2C2C2C] hover:bg-[#3C3C3C] text-[#A0A0A0] hover:text-white transition-colors"
+          className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-[#965B43] hover:bg-[#874E37] text-[#FBE1CF] hover:text-[#FDF6EC] transition-colors cursor-pointer"
           title={collapsed ? 'Expandir' : 'Recolher'}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -78,17 +79,17 @@ export function SuperAdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group',
+                'flex items-center gap-3 rounded-xl px-3 py-2.5 min-h-[44px] text-sm font-medium transition-all duration-200 group',
                 isActive
-                  ? 'bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold shadow-warm-xs'
-                  : 'text-[#B0B0B0] hover:bg-[#2C2C2C] hover:text-white'
+                  ? 'bg-[#FDF6EC] text-[#3A2A1D] font-bold shadow-warm-xs'
+                  : 'text-[#FBE1CF] hover:bg-[#965B43] hover:text-[#FDF6EC]'
               )}
               title={collapsed ? item.title : undefined}
             >
               <Icon
                 className={cn(
                   'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-105',
-                  isActive ? 'text-white' : 'text-[#888888] group-hover:text-white'
+                  isActive ? 'text-[#3A2A1D]' : 'text-[#FBE1CF] group-hover:text-[#FDF6EC]'
                 )}
               />
               {!collapsed && <span className="truncate">{item.title}</span>}
@@ -96,7 +97,7 @@ export function SuperAdminSidebar() {
                 <span
                   className={cn(
                     'ml-auto rounded-full px-2 py-0.5 text-xs font-semibold',
-                    isActive ? 'bg-white/20 text-white' : 'bg-[#333333] text-[#CCCCCC]'
+                    isActive ? 'bg-[#AA6C52] text-[#FDF6EC]' : 'bg-[#965B43] text-[#FDF6EC]'
                   )}
                 >
                   {item.badge}
@@ -107,21 +108,33 @@ export function SuperAdminSidebar() {
         })}
       </nav>
 
-      {/* Return to Tenant App / Footer */}
-      <div className="p-3 border-t border-[#2C2C2C] bg-[#181818] space-y-2">
+      {/* Return to Tenant App & Logout Button */}
+      <div className="p-3 border-t border-[#965B43] bg-[#965B43]/40 space-y-2 shrink-0">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-[#C0C0C0] hover:text-white hover:bg-[#2C2C2C] transition-colors"
+          className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-[#FDF6EC] hover:bg-[#965B43] transition-colors min-h-[44px]"
           title="Voltar ao App da Empresa"
         >
-          <ArrowLeft className="h-4 w-4 text-[#F0806B] shrink-0" />
+          <ArrowLeft className="h-4 w-4 text-[#FDF6EC] shrink-0" />
           {!collapsed && <span>Voltar ao App da Empresa</span>}
         </Link>
 
+        <button
+          onClick={() => logoutAction()}
+          className={cn(
+            'w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-[#FDF6EC] bg-[#874E37] hover:bg-[#78432E] transition-all border border-[#965B43] cursor-pointer min-h-[44px]',
+            collapsed ? 'justify-center px-2' : ''
+          )}
+          title="Sair / Encerrar Sessão"
+        >
+          <LogOut className="h-4 w-4 text-[#FDF6EC] shrink-0" />
+          {!collapsed && <span>Sair / Encerrar Sessão</span>}
+        </button>
+
         {!collapsed && (
-          <div className="flex items-center gap-2 px-3 pt-1 text-[11px] text-[#777777]">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#10B981] shrink-0" />
-            <span>Root Admin Mode</span>
+          <div className="flex items-center gap-2 px-1 text-xs text-[#FBE1CF]">
+            <ShieldCheck className="h-4 w-4 text-[#FDF6EC] shrink-0" />
+            <span className="font-semibold text-xs leading-tight">Desenvolvida por Flavio Santiago Consultor IA</span>
           </div>
         )}
       </div>

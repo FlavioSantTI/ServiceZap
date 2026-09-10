@@ -192,27 +192,27 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-[#FAF6F2] border-[#DECDBB] text-[#2B2B2B] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl bg-card border-border text-foreground max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold text-[#2B2B2B]">
-            <Crown className="h-5 w-5 text-[#E8622C]" />
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold text-foreground">
+            <Crown className="h-5 w-5 text-primary" />
             {plan ? `Editar Plano: ${plan.name}` : 'Cadastrar Novo Plano SaaS'}
           </DialogTitle>
-          <DialogDescription className="text-xs text-[#666666]">
+          <DialogDescription className="text-xs text-muted-foreground">
             Configure preços, limites de assentos e funcionalidades habilitadas para este plano.
           </DialogDescription>
         </DialogHeader>
 
         {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700 font-medium">
+          <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-rose-700 font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {/* Dados Gerais & Preços */}
-          <div className="rounded-xl border border-[#DECDBB] bg-white p-4 space-y-3">
-            <h4 className="text-xs font-bold text-[#E8622C] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
               <Crown className="h-4 w-4" /> 1. Identificação e Preços
             </h4>
 
@@ -449,14 +449,14 @@ export function PlanDialog({ open, onOpenChange, plan, onSuccess }: PlanDialogPr
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-[#DECDBB] text-[#555555]"
+              className="border-border text-foreground hover:bg-muted rounded-xl cursor-pointer"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-warm-xs rounded-xl cursor-pointer"
             >
               {loading ? 'Salvando Plano...' : 'Salvar Plano SaaS'}
             </Button>

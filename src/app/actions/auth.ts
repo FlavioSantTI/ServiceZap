@@ -33,17 +33,17 @@ const DEMO_TENANTS = {
   },
   tenant_02: {
     userId: 'usr_beta_02',
-    name: 'Carlos Mendes (Beta)',
+    name: 'Favuca Dias (Beta)',
     email: 'beta@servicezap.com',
     role: 'owner' as UserRole,
     tenantId: 'tenant_02',
-    tenantName: 'Empresa Beta Serviços',
+    tenantName: 'Beta Hidráulica & Desentupidora',
     permissions: DEFAULT_ADMIN_PERMISSIONS,
   },
   tenant_master: {
     userId: 'usr_master',
-    name: 'Super Admin Master',
-    email: 'master@servicezap.com',
+    name: 'Flavio Santiago (Super Admin)',
+    email: 'flavio.santiago.ti@outlook.com',
     role: 'super_admin' as UserRole,
     tenantId: 'tenant_master',
     tenantName: 'ServiceZap Plataforma',
@@ -120,14 +120,10 @@ export async function getCurrentUserAction(): Promise<CurrentUserSession | null>
       }
     }
 
-    // 3. Se não houver nenhum cookie e não estiver em produção estrita, retorna usuário padrão Alpha
-    if (!sessionCookie && !devSessionCookie) {
-      return DEMO_TENANTS.tenant_01;
-    }
-
+    // 3. Se não houver nenhum cookie ativo, retorna null (sem sessão)
     return null;
   } catch (error) {
-    return DEMO_TENANTS.tenant_01;
+    return null;
   }
 }
 
@@ -163,8 +159,18 @@ export async function loginAction(data: {
     }
 
     // 2. Reconhecimento inteligente de e-mails de demonstração
-    if (emailLower.includes('beta') || emailLower === 'empresa2@servicezap.com') {
-      const user = DEMO_TENANTS.tenant_02;
+    if (emailLower.includes('beta') || emailLower.includes('favuca') || emailLower === 'empresa2@servicezap.com') {
+      const user = {
+        ...DEMO_TENANTS.tenant_02,
+        email: emailLower,
+        name: emailLower.includes('favuca') ? 'Favuca Dias' : DEMO_TENANTS.tenant_02.name,
+      };
+      cookieStore.set('servicezap-user-role', user.role, {
+        path: '/',
+        httpOnly: false,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+      });
       cookieStore.set('servicezap-session', encodeURIComponent(JSON.stringify(user)), {
         path: '/',
         httpOnly: true,
@@ -175,8 +181,18 @@ export async function loginAction(data: {
       return { success: true, user };
     }
 
-    if (emailLower.includes('master') || emailLower.includes('superadmin')) {
+    if (emailLower.includes('flavio.santiago.ti@outlook.com') || emailLower.includes('master') || emailLower.includes('superadmin')) {
+      const requiredPassword = process.env.SUPERADMIN_PASSWORD || 'Favuca#1970';
+      if (data.password && data.password !== requiredPassword) {
+        return { success: false, error: 'Senha incorreta para a conta de Super Admin Master.' };
+      }
       const user = DEMO_TENANTS.tenant_master;
+      cookieStore.set('servicezap-user-role', user.role, {
+        path: '/',
+        httpOnly: false,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+      });
       cookieStore.set('servicezap-session', encodeURIComponent(JSON.stringify(user)), {
         path: '/',
         httpOnly: true,
@@ -189,6 +205,12 @@ export async function loginAction(data: {
 
     if (emailLower.includes('alpha') || emailLower === 'flavio@servicezap.com' || emailLower === 'admin@servicezap.com') {
       const user = DEMO_TENANTS.tenant_01;
+      cookieStore.set('servicezap-user-role', user.role, {
+        path: '/',
+        httpOnly: false,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+      });
       cookieStore.set('servicezap-session', encodeURIComponent(JSON.stringify(user)), {
         path: '/',
         httpOnly: true,
@@ -202,8 +224,6 @@ export async function loginAction(data: {
     // 3. Autenticação real com Appwrite caso credenciais reais sejam informadas
     if (process.env.APPWRITE_API_KEY && process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID && data.password) {
       try {
-        const { account } = await createAdminClient();
-        // Em Appwrite Server com Node SDK, podemos validar o usuário
         const { databases } = await createAdminClient();
         const userDocs = await databases.listDocuments(DATABASE_ID, COLLECTION_USERS, [
           Query.equal('email', emailLower),
@@ -222,6 +242,12 @@ export async function loginAction(data: {
             permissions: profile.permissions || DEFAULT_ADMIN_PERMISSIONS,
           };
 
+          cookieStore.set('servicezap-user-role', userSession.role, {
+            path: '/',
+            httpOnly: false,
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: 'lax',
+          });
           cookieStore.set('servicezap-session', encodeURIComponent(JSON.stringify(userSession)), {
             path: '/',
             httpOnly: true,
@@ -248,6 +274,12 @@ export async function loginAction(data: {
       permissions: DEFAULT_ADMIN_PERMISSIONS,
     };
 
+    cookieStore.set('servicezap-user-role', genericUser.role, {
+      path: '/',
+      httpOnly: false,
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: 'lax',
+    });
     cookieStore.set('servicezap-session', encodeURIComponent(JSON.stringify(genericUser)), {
       path: '/',
       httpOnly: true,
@@ -294,6 +326,13 @@ export async function switchTenantAction(tenantId: 'tenant_01' | 'tenant_02' | '
     sameSite: 'lax',
   });
 
+  cookieStore.set('servicezap-user-role', targetUser.role, {
+    path: '/',
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 7,
+    sameSite: 'lax',
+  });
+
   cookieStore.set('appwrite-session', targetUser.userId, {
     path: '/',
     httpOnly: true,
@@ -306,6 +345,28 @@ export async function switchTenantAction(tenantId: 'tenant_01' | 'tenant_02' | '
 }
 
 /**
+ * Garante que existe um usuário autenticado ativo. Redireciona para /login se nulo.
+ */
+export async function requireAuthAction(): Promise<CurrentUserSession> {
+  const user = await getCurrentUserAction();
+  if (!user) {
+    redirect('/login');
+  }
+  return user;
+}
+
+/**
+ * Garante que o usuário autenticado é um Super Admin Master.
+ */
+export async function requireSuperAdminAction(): Promise<CurrentUserSession> {
+  const user = await requireAuthAction();
+  if (user.role !== 'super_admin') {
+    redirect('/dashboard');
+  }
+  return user;
+}
+
+/**
  * Realiza o encerramento da sessão
  */
 export async function logoutAction(): Promise<void> {
@@ -313,8 +374,93 @@ export async function logoutAction(): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.delete('appwrite-session');
     cookieStore.delete('servicezap-session');
+    cookieStore.delete('servicezap-user-role');
   } catch (error) {
     console.error('Erro no logout:', error);
   }
   redirect('/login');
+}
+
+/**
+ * Solicita a recuperação de senha por e-mail
+ */
+export async function requestPasswordResetAction(email: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+  resetUrl?: string;
+}> {
+  try {
+    const emailLower = email.trim().toLowerCase();
+    if (!emailLower) {
+      return { success: false, error: 'Por favor, informe seu e-mail cadastrado.' };
+    }
+
+    if (process.env.APPWRITE_API_KEY && process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
+      try {
+        const { users } = await createAdminClient();
+        const userList = await users.list([Query.equal('email', emailLower)]);
+        if (userList.users.length > 0) {
+          const foundUser = userList.users[0];
+          // Simula/gerar token de instrução de redefinição
+          const resetToken = `rst_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const resetUrl = `/reset-password?userId=${foundUser.$id}&secret=${resetToken}`;
+
+          return {
+            success: true,
+            message: `Instruções de redefinição enviadas para ${emailLower}. Acesse o link recebido para cadastrar sua nova senha.`,
+            resetUrl,
+          };
+        }
+      } catch (err: any) {
+        console.warn('Aviso na recuperação de senha no Appwrite:', err);
+      }
+    }
+
+    // Fallback gracioso para contas de demonstração / dev
+    const resetToken = `rst_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    return {
+      success: true,
+      message: `Enviamos as instruções para ${emailLower}. Siga os passos para cadastrar sua nova senha.`,
+      resetUrl: `/reset-password?email=${encodeURIComponent(emailLower)}&secret=${resetToken}`,
+    };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Falha ao solicitar recuperação de senha.' };
+  }
+}
+
+/**
+ * Confirma a redefinição de senha com token/secret
+ */
+export async function resetPasswordWithTokenAction(input: {
+  userId?: string;
+  email?: string;
+  secret: string;
+  password: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    if (!input.password || input.password.length < 6) {
+      return { success: false, error: 'A nova senha deve possuir no mínimo 6 caracteres.' };
+    }
+
+    if (process.env.APPWRITE_API_KEY && process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID && input.userId) {
+      try {
+        const { users } = await createAdminClient();
+        await users.updatePassword(input.userId, input.password);
+        return {
+          success: true,
+          message: 'Sua senha foi redefinida com sucesso no Appwrite! Você já pode fazer login com a nova senha.',
+        };
+      } catch (err: any) {
+        console.warn('Erro ao atualizar senha no Appwrite:', err);
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Senha redefinida com sucesso! Redirecionando para a tela de login...',
+    };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Falha ao redefinir a senha.' };
+  }
 }

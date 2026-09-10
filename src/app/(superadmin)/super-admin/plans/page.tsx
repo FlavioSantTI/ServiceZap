@@ -69,11 +69,11 @@ export default function SuperAdminPlansPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[#2B2B2B] flex items-center gap-2">
-            <Crown className="h-6 w-6 text-[#E8622C]" />
+          <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
+            <Crown className="h-6 w-6 text-primary" />
             Catálogo & Precificação de Planos SaaS
           </h1>
-          <p className="text-sm text-[#666666]">
+          <p className="text-xs text-muted-foreground">
             Cadastre novos degraus de planos, defina valores mensais/anuais, limites numéricos e recursos liberados.
           </p>
         </div>
@@ -84,14 +84,14 @@ export default function SuperAdminPlansPage() {
             size="sm"
             onClick={loadPlans}
             disabled={loading}
-            className="border-[#DECDBB] text-[#666666] hover:bg-[#FFF3EE]"
+            className="border-border text-foreground hover:bg-muted font-semibold rounded-xl cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
           <Button
             onClick={handleCreate}
-            className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105 shadow-warm-sm"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-warm-xs rounded-xl cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Novo Plano
@@ -102,11 +102,11 @@ export default function SuperAdminPlansPage() {
       {/* Grid de Planos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading ? (
-          <div className="col-span-full text-center py-16 text-sm text-[#777777]">
+          <div className="col-span-full text-center py-16 text-sm text-muted-foreground">
             Carregando planos cadastrados...
           </div>
         ) : plans.length === 0 ? (
-          <div className="col-span-full text-center py-16 text-sm text-[#777777]">
+          <div className="col-span-full text-center py-16 text-sm text-muted-foreground">
             Nenhum plano cadastrado. Clique em &quot;Novo Plano&quot; para iniciar.
           </div>
         ) : (
@@ -114,12 +114,12 @@ export default function SuperAdminPlansPage() {
             <div
               key={plan.id}
               className={cn(
-                'relative flex flex-col rounded-2xl border bg-white p-6 shadow-warm-xs transition-all duration-200 hover:shadow-warm-md',
-                plan.popular ? 'border-[#E8622C] ring-2 ring-[#E8622C]/20' : 'border-[#DECDBB]'
+                'relative flex flex-col rounded-2xl border bg-card p-6 shadow-warm-xs transition-all duration-200 hover:shadow-warm-sm',
+                plan.popular ? 'border-primary ring-2 ring-primary/20' : 'border-border'
               )}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#F0806B] to-[#E8622C] px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-warm-xs">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary-foreground shadow-warm-xs">
                   Mais Popular
                 </div>
               )}
@@ -127,54 +127,54 @@ export default function SuperAdminPlansPage() {
               {/* Title & Badge */}
               <div className="space-y-1 mb-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-black text-[#2B2B2B]">{plan.name}</h3>
+                  <h3 className="text-lg font-black text-foreground">{plan.name}</h3>
                   {plan.badge && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#FFF3EE] text-[#E8622C] px-2 py-0.5 rounded-md border border-[#F0806B]/20">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/15 text-primary px-2 py-0.5 rounded-md border border-primary/20">
                       {plan.badge}
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] font-mono text-[#888888]">ID: {plan.id}</div>
-                <p className="text-xs text-[#666666] min-h-[36px] mt-1">{plan.description}</p>
+                <div className="text-[11px] font-mono text-muted-foreground">ID: {plan.id}</div>
+                <p className="text-xs text-muted-foreground min-h-[36px] mt-1">{plan.description}</p>
               </div>
 
               {/* Pricing */}
-              <div className="mb-4 pb-4 border-b border-[#F2E8DE]">
+              <div className="mb-4 pb-4 border-b border-border">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xs font-bold text-[#777777]">R$</span>
-                  <span className="text-3xl font-black text-[#2B2B2B]">
+                  <span className="text-xs font-bold text-muted-foreground">R$</span>
+                  <span className="text-3xl font-black text-foreground">
                     {Number(plan.priceMonthly).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <span className="text-xs font-medium text-[#777777]">/mês</span>
+                  <span className="text-xs font-medium text-muted-foreground">/mês</span>
                 </div>
                 {plan.priceYearly > 0 && (
-                  <div className="text-[11px] text-[#10B981] font-semibold mt-1">
+                  <div className="text-[11px] text-emerald-700 font-semibold mt-1">
                     Anual: R$ {Number(plan.priceYearly).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 )}
               </div>
 
               {/* Limits Highlights */}
-              <div className="rounded-xl bg-[#FAF6F2] p-3 mb-4 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-[#444444]">
+              <div className="rounded-xl bg-muted/50 p-3 mb-4 space-y-1.5 text-xs border border-border">
+                <div className="flex items-center justify-between text-foreground">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <Users className="h-3.5 w-3.5 text-[#E8622C]" /> Colaboradores:
+                    <Users className="h-3.5 w-3.5 text-primary" /> Colaboradores:
                   </span>
                   <span className="font-bold">
                     {plan.limits?.maxUsers === Infinity || plan.limits?.maxUsers === 0 ? 'Ilimitado' : `${plan.limits?.maxUsers} users`}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[#444444]">
+                <div className="flex items-center justify-between text-foreground">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <MessageSquare className="h-3.5 w-3.5 text-[#10B981]" /> Linhas WhatsApp:
+                    <MessageSquare className="h-3.5 w-3.5 text-emerald-600" /> Linhas WhatsApp:
                   </span>
                   <span className="font-bold">{plan.limits?.maxWhatsAppInstances || 1}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-[#444444]">
+                <div className="flex items-center justify-between text-foreground">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <FileCheck2 className="h-3.5 w-3.5 text-[#F59E0B]" /> NF-e Automática:
+                    <FileCheck2 className="h-3.5 w-3.5 text-amber-600" /> NF-e Automática:
                   </span>
                   <span className="font-bold">
                     {plan.features?.hasNfe ? 'Sim' : 'Não'}
@@ -185,20 +185,20 @@ export default function SuperAdminPlansPage() {
               {/* Bullets */}
               <div className="flex-1 space-y-1.5 mb-6">
                 {(plan.featureList || []).slice(0, 4).map((feat, idx) => (
-                  <div key={idx} className="flex items-start gap-1.5 text-xs text-[#555555]">
-                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#10B981] mt-0.5" />
+                  <div key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 mt-0.5" />
                     <span className="truncate">{feat}</span>
                   </div>
                 ))}
               </div>
 
               {/* Actions Buttons */}
-              <div className="flex gap-2 pt-2 border-t border-[#F2E8DE]">
+              <div className="flex gap-2 pt-2 border-t border-border">
                 <Button
                   onClick={() => handleEdit(plan)}
                   variant="outline"
                   size="sm"
-                  className="flex-1 border-[#DECDBB] text-[#444444] hover:text-[#E8622C] hover:bg-[#FFF3EE] text-xs font-bold"
+                  className="flex-1 border-border text-foreground hover:text-primary hover:bg-primary/10 text-xs font-bold rounded-xl cursor-pointer"
                 >
                   <Edit2 className="h-3.5 w-3.5 mr-1" /> Editar
                 </Button>
@@ -206,7 +206,7 @@ export default function SuperAdminPlansPage() {
                   onClick={() => handleDelete(plan)}
                   variant="outline"
                   size="sm"
-                  className="border-[#DECDBB] text-red-500 hover:text-red-700 hover:bg-red-50 text-xs"
+                  className="border-border text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 text-xs rounded-xl cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

@@ -129,10 +129,10 @@ export default function ClientsPage() {
     <div className="space-y-6">
       {/* Title Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-          Gestão de Clientes & CRM
+        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
+          Gestão de Clientes &amp; CRM
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Acompanhe seus clientes, controle o faturamento acumulado (LTV) e emita cobranças diretas.
         </p>
       </div>

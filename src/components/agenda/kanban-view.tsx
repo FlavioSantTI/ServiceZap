@@ -80,17 +80,17 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
         return (
           <div
             key={col.status}
-            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col overflow-hidden"
+            className="rounded-2xl border border-border bg-card shadow-xs flex flex-col overflow-hidden"
           >
             {/* Header da Coluna */}
-            <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 flex items-center justify-between">
+            <div className="p-3.5 border-b border-border bg-muted/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`} />
-                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">
                   {col.title}
                 </h4>
               </div>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-muted text-foreground border border-border/60">
                 {columnApts.length}
               </span>
             </div>
@@ -98,7 +98,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
             {/* Lista de Cards */}
             <div className="p-3 space-y-2.5 min-h-[250px] max-h-[650px] overflow-y-auto">
               {columnApts.length === 0 ? (
-                <div className="py-10 text-center text-slate-400 text-xs">
+                <div className="py-10 text-center text-muted-foreground text-xs">
                   Nenhum atendimento nesta etapa.
                 </div>
               ) : (
@@ -109,35 +109,35 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                     <div
                       key={apt.$id}
                       onClick={() => onSelectAppointment(apt)}
-                      className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 hover:border-[#E8622C]/40 dark:hover:border-[#E8622C]/40 transition-all cursor-pointer space-y-2.5 group hover:shadow-xs"
+                      className="p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/40 transition-all cursor-pointer space-y-2.5 group hover:shadow-xs"
                     >
                       {/* Topo do Card: Horário & Data */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                        <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                          <CalendarIcon className="w-3 h-3 text-[#E8622C]" />
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1 font-semibold text-foreground">
+                          <CalendarIcon className="w-3 h-3 text-primary" />
                           <span>{formattedDate}</span>
                         </span>
-                        <span className="font-mono font-bold px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                        <span className="font-mono font-bold px-1.5 py-0.5 rounded bg-card text-foreground border border-border/50">
                           {apt.time}
                         </span>
                       </div>
 
                       {/* Título do Serviço e Cliente */}
                       <div>
-                        <h5 className="font-bold text-xs text-slate-900 dark:text-slate-100 line-clamp-1">
+                        <h5 className="font-bold text-xs text-foreground line-clamp-1">
                           {apt.serviceName}
                         </h5>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                          <User className="w-3 h-3 text-slate-400 shrink-0" />
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <User className="w-3 h-3 text-muted-foreground shrink-0" />
                           <span className="truncate">{apt.clientName}</span>
                         </p>
                       </div>
 
                       {/* Atendente & Local */}
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 space-y-1 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                      <div className="text-[10px] text-muted-foreground space-y-1 pt-1 border-t border-border/60">
                         {apt.attendantName && (
                           <p className="flex items-center gap-1 truncate">
-                            <Briefcase className="w-3 h-3 text-[#E8622C] shrink-0" />
+                            <Briefcase className="w-3 h-3 text-primary shrink-0" />
                             <span>{apt.attendantName}</span>
                           </p>
                         )}
@@ -155,7 +155,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                           <Link
                             href="/dashboard/whatsapp"
                             onClick={(e) => e.stopPropagation()}
-                            className="p-1.5 rounded-lg bg-orange-500/10 text-[#E8622C] hover:bg-gradient-to-r hover:from-[#F0806B] hover:to-[#E8622C] hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
                             title="Abrir WhatsApp"
                           >
                             <MessageSquare className="w-3 h-3" />
@@ -170,7 +170,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                               e.stopPropagation();
                               onAdvanceStatus(apt.$id!, col.nextStatus!);
                             }}
-                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-200/80 hover:bg-gradient-to-r hover:from-[#F0806B] hover:to-[#E8622C] hover:text-white dark:bg-slate-800 dark:hover:from-[#F0806B] dark:hover:to-[#E8622C] text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border/50 transition-colors flex items-center gap-1"
                           >
                             <span>{col.nextLabel}</span>
                             <ChevronRight className="w-3 h-3" />

@@ -13,7 +13,7 @@ export default function SuperAdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#FAF6F2]">
+    <div className="flex min-h-screen bg-background text-foreground">
       <SuperAdminSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />

@@ -204,14 +204,14 @@ export function ProfileForm() {
             </CardHeader>
             <CardContent className="space-y-5">
               {/* Seletor de Tipo de Prestador: PF vs PJ */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1.5 bg-muted/60 rounded-2xl border border-border">
                 <button
                   type="button"
                   onClick={() => handlePersonTypeChange('pf')}
-                  className={`flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     isPF
-                      ? 'bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white shadow-warm-xs font-bold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-primary text-primary-foreground shadow-warm-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card/60'
                   }`}
                 >
                   <User className="h-4 w-4" />
@@ -221,10 +221,10 @@ export function ProfileForm() {
                 <button
                   type="button"
                   onClick={() => handlePersonTypeChange('pj')}
-                  className={`flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     !isPF
-                      ? 'bg-[#2B2B2B] text-white shadow-warm-xs font-bold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-primary text-primary-foreground shadow-warm-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card/60'
                   }`}
                 >
                   <Building2 className="h-4 w-4" />

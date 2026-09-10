@@ -144,6 +144,7 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
           maxUsers: formData.maxUsers,
           ownerName: formData.ownerName,
           ownerEmail: formData.ownerEmail,
+          adminPassword: formData.adminPassword || undefined,
         });
 
         if (!res.success) {
@@ -181,20 +182,20 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[96vw] max-w-5xl max-h-[92vh] overflow-y-auto bg-[#FAF7F4] border-[#DECDBB] text-[#2B2B2B] p-6 md:p-8 shadow-2xl rounded-2xl">
+      <DialogContent className="w-[96vw] max-w-5xl max-h-[92vh] overflow-y-auto bg-card border-border text-foreground p-6 md:p-8 shadow-2xl rounded-2xl">
         
         {/* Cabeçalho */}
-        <DialogHeader className="pb-4 border-b border-[#DECDBB]/70">
+        <DialogHeader className="pb-4 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-[#F0806B] to-[#E8622C] flex items-center justify-center text-white shadow-md">
+              <div className="h-11 w-11 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-warm-xs">
                 {tenantToEdit ? <Edit2 className="h-6 w-6" /> : <Building2 className="h-6 w-6" />}
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold tracking-tight text-[#2B2B2B]">
+                <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
                   {tenantToEdit ? `Editar Empresa: ${tenantToEdit.name}` : 'Cadastrar Nova Empresa (Tenant)'}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-[#666666]">
+                <DialogDescription className="text-xs text-muted-foreground">
                   {tenantToEdit
                     ? 'Atualize os dados cadastrais, plano contratado e acessos do Administrador.'
                     : 'Adicione uma nova empresa cliente, selecione o plano contratado e defina os acessos do Administrador.'}
@@ -277,22 +278,22 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
             {/* Bloco Esquerdo: Dados da Empresa */}
-            <div className="rounded-xl border border-[#DECDBB] bg-white p-5 space-y-4 shadow-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                <h4 className="text-xs font-bold text-[#2B2B2B] uppercase tracking-wider flex items-center gap-1.5">
-                  <Building2 className="h-4 w-4 text-[#E8622C]" />
+            <div className="rounded-xl border border-border bg-card p-5 space-y-4 shadow-warm-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Building2 className="h-4 w-4 text-primary" />
                   2. Dados da Empresa
                 </h4>
 
                 {/* Tipo de Pessoa Pill Selector */}
-                <div className="flex items-center bg-[#FAF7F4] p-0.5 rounded-lg border border-[#DECDBB]">
+                <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border border-border">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, personType: 'pj' })}
-                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                       formData.personType === 'pj'
-                        ? 'bg-white text-[#E8622C] shadow-xs'
-                        : 'text-[#666] hover:text-[#2B2B2B]'
+                        ? 'bg-primary text-primary-foreground font-bold shadow-warm-xs'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     PJ (CNPJ)
@@ -300,10 +301,10 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, personType: 'pf' })}
-                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
                       formData.personType === 'pf'
-                        ? 'bg-white text-[#E8622C] shadow-xs'
-                        : 'text-[#666] hover:text-[#2B2B2B]'
+                        ? 'bg-primary text-primary-foreground font-bold shadow-warm-xs'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     PF (CPF)
@@ -409,36 +410,27 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {!tenantToEdit ? (
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold text-[#444]">Senha de Acesso</Label>
-                        <button
-                          type="button"
-                          onClick={generatePassword}
-                          className="text-[10px] text-[#E8622C] font-semibold hover:underline flex items-center gap-0.5"
-                        >
-                          <RefreshCw className="h-2.5 w-2.5" /> Gerar
-                        </button>
-                      </div>
-                      <Input
-                        type="text"
-                        placeholder="ServiceZap@2026"
-                        value={formData.adminPassword}
-                        onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
-                        className="h-9 bg-[#FAF7F4] border-[#DECDBB] text-xs font-mono mt-1"
-                      />
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-[#444]">
+                        {tenantToEdit ? 'Redefinir Senha do Admin' : 'Senha de Acesso *'}
+                      </Label>
+                      <button
+                        type="button"
+                        onClick={generatePassword}
+                        className="text-[10px] text-[#E8622C] font-semibold hover:underline flex items-center gap-0.5"
+                      >
+                        <RefreshCw className="h-2.5 w-2.5" /> Gerar Nova
+                      </button>
                     </div>
-                  ) : (
-                    <div>
-                      <Label className="text-xs font-semibold text-[#444]">ID do Tenant</Label>
-                      <Input
-                        disabled
-                        value={tenantToEdit.$id}
-                        className="h-9 bg-gray-100 border-[#DECDBB] text-xs font-mono mt-1 opacity-70"
-                      />
-                    </div>
-                  )}
+                    <Input
+                      type="text"
+                      placeholder={tenantToEdit ? 'Deixe em branco para manter a atual' : 'ServiceZap@2026'}
+                      value={formData.adminPassword}
+                      onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
+                      className="h-9 bg-[#FAF7F4] border-[#DECDBB] text-xs font-mono mt-1"
+                    />
+                  </div>
 
                   <div>
                     <Label className="text-xs font-semibold text-[#444]">Limite de Usuários</Label>
@@ -457,15 +449,15 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
           </div>
 
           {/* RODAPÉ E BOTÕES DE AÇÃO */}
-          <div className="rounded-xl bg-white border border-[#DECDBB] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-2.5 text-xs text-[#555]">
-              <div className="h-8 w-8 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center text-[#E8622C]">
+          <div className="rounded-xl bg-card border border-border p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-warm-xs">
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+              <div className="h-8 w-8 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center text-primary">
                 <Zap className="h-4 w-4" />
               </div>
               <div>
                 <span className="font-medium">Plano: </span>
-                <span className="font-bold text-[#2B2B2B]">{selectedPlan?.name}</span>
-                <span className="text-[#888]"> • R$ {selectedPlan?.priceMonthly || 0}/mês ({formData.maxUsers} colaboradores)</span>
+                <span className="font-bold text-foreground">{selectedPlan?.name}</span>
+                <span className="text-muted-foreground"> • R$ {selectedPlan?.priceMonthly || 0}/mês ({formData.maxUsers} colaboradores)</span>
               </div>
             </div>
 
@@ -474,18 +466,18 @@ export function TenantDialog({ open, onOpenChange, onSuccess, tenantToEdit }: Te
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-9 px-4 border-[#DECDBB] text-[#555] text-xs hover:bg-[#FAF7F4]"
+                className="h-9 px-4 border-border text-foreground text-xs hover:bg-muted rounded-xl cursor-pointer"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-9 px-6 bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white text-xs font-bold shadow-sm hover:brightness-105"
+                className="h-9 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-warm-xs rounded-xl cursor-pointer"
               >
                 {loading ? (
                   <span className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="h-3.5 w-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                     Salvando...
                   </span>
                 ) : (

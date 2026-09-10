@@ -1,0 +1,6 @@
+{
+  "name": "ServiceZap - Programa Piloto Beta",
+  "description": "Automação e Conexão de WhatsApp sem instabilidade, quedas ou complexidade desnecessária. Programa Piloto Exclusivo com 5 vagas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

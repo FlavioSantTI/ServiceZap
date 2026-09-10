@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { fetchTenantsAction, getSuperAdminMetricsAction } from '@/app/actions/super-admin';
 import { TenantDocument } from '@/types/appwrite';
 import { TenantDialog } from '@/components/super-admin/tenant-dialog';
+import { CampaignLeadsCard } from '@/components/super-admin/campaign-leads-card';
 
 export default function SuperAdminOverviewPage() {
   const [loading, setLoading] = useState(true);
@@ -67,18 +68,18 @@ export default function SuperAdminOverviewPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#2B2B2B] via-[#38322E] to-[#2B2B2B] p-6 text-white shadow-warm-md border border-[#443C37]">
-        <div className="space-y-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl bg-card p-6 text-foreground shadow-warm-xs border border-border">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 items-center px-2 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-[#E8622C] text-white">
+            <span className="flex h-6 items-center px-2.5 text-xs font-extrabold uppercase tracking-wider rounded-lg bg-primary text-primary-foreground shadow-warm-xs">
               Super Admin Master
             </span>
-            <span className="text-xs text-[#DECDBB]">Visão Consolidada Multi-Tenant</span>
+            <span className="text-xs text-muted-foreground font-medium">Visão Consolidada Multi-Tenant</span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-white">
+          <h1 className="text-2xl font-black tracking-tight text-foreground">
             Painel Geral do SaaS ServiceZap
           </h1>
-          <p className="text-sm text-[#C8B8A6]">
+          <p className="text-xs text-muted-foreground">
             Gerencie todas as empresas clientes, administre planos contratados e acompanhe a receita recorrente.
           </p>
         </div>
@@ -89,14 +90,14 @@ export default function SuperAdminOverviewPage() {
             size="sm"
             onClick={loadData}
             disabled={loading}
-            className="border-[#5C5046] text-[#DECDBB] hover:text-white hover:bg-[#3E342D]"
+            className="border-border text-foreground hover:bg-muted rounded-xl font-semibold cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
           <Button
             onClick={() => setIsCreateOpen(true)}
-            className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105 shadow-warm-sm"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-warm-xs rounded-xl cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Nova Empresa
@@ -107,74 +108,77 @@ export default function SuperAdminOverviewPage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* MRR */}
-        <div className="rounded-2xl border border-[#DECDBB] bg-white p-5 shadow-warm-xs space-y-2">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-warm-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#8A503C] uppercase tracking-wider">MRR Recorrente</span>
-            <div className="h-9 w-9 rounded-xl bg-[#FFF3EE] flex items-center justify-center text-[#E8622C]">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">MRR Recorrente</span>
+            <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center">
               <TrendingUp className="h-5 w-5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-[#2B2B2B]">
+          <div className="text-2xl font-black text-foreground">
             R$ {metrics.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            <span className="text-xs font-normal text-[#777777]"> /mês</span>
+            <span className="text-xs font-normal text-muted-foreground"> /mês</span>
           </div>
-          <p className="text-xs text-[#777777]">Soma de assinaturas ativas</p>
+          <p className="text-xs text-muted-foreground">Soma de assinaturas ativas</p>
         </div>
 
         {/* Empresas Ativas */}
-        <div className="rounded-2xl border border-[#DECDBB] bg-white p-5 shadow-warm-xs space-y-2">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-warm-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#8A503C] uppercase tracking-wider">Empresas Cadastradas</span>
-            <div className="h-9 w-9 rounded-xl bg-[#EBF6EE] flex items-center justify-center text-[#10B981]">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Empresas Cadastradas</span>
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-700 border border-emerald-500/25 flex items-center justify-center">
               <Building2 className="h-5 w-5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-[#2B2B2B]">
-            {metrics.activeTenants} <span className="text-sm font-medium text-[#777777]">/ {metrics.totalTenants} ativas</span>
+          <div className="text-2xl font-black text-foreground">
+            {metrics.activeTenants} <span className="text-sm font-medium text-muted-foreground">/ {metrics.totalTenants} ativas</span>
           </div>
-          <p className="text-xs text-[#777777]">Tenants em operação no sistema</p>
+          <p className="text-xs text-muted-foreground">Tenants em operação no sistema</p>
         </div>
 
         {/* Total Usuários Alocados */}
-        <div className="rounded-2xl border border-[#DECDBB] bg-white p-5 shadow-warm-xs space-y-2">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-warm-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#8A503C] uppercase tracking-wider">Capacidade de Equipes</span>
-            <div className="h-9 w-9 rounded-xl bg-[#F0EEFC] flex items-center justify-center text-[#6366F1]">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Capacidade de Equipes</span>
+            <div className="h-10 w-10 rounded-xl bg-indigo-500/15 text-indigo-700 border border-indigo-500/25 flex items-center justify-center">
               <Users className="h-5 w-5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-[#2B2B2B]">
-            {metrics.totalUsersLimit} <span className="text-xs font-normal text-[#777777]">assentos</span>
+          <div className="text-2xl font-black text-foreground">
+            {metrics.totalUsersLimit} <span className="text-xs font-normal text-muted-foreground">assentos</span>
           </div>
-          <p className="text-xs text-[#777777]">Soma dos limites contratados</p>
+          <p className="text-xs text-muted-foreground">Soma dos limites contratados</p>
         </div>
 
         {/* Planos Contratados */}
-        <div className="rounded-2xl border border-[#DECDBB] bg-white p-5 shadow-warm-xs space-y-2">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-warm-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#8A503C] uppercase tracking-wider">Distribuição de Planos</span>
-            <div className="h-9 w-9 rounded-xl bg-[#FFF9E6] flex items-center justify-center text-[#F59E0B]">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Distribuição de Planos</span>
+            <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/25 flex items-center justify-center">
               <CreditCard className="h-5 w-5" />
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold text-[#444444]">
-            <span className="bg-[#EBF6EE] text-[#10B981] px-1.5 py-0.5 rounded">Pro: {metrics.planDistribution.pro || 0}</span>
-            <span className="bg-[#FFF3EE] text-[#E8622C] px-1.5 py-0.5 rounded">Starter: {metrics.planDistribution.starter || 0}</span>
-            <span className="bg-[#F0EEFC] text-[#6366F1] px-1.5 py-0.5 rounded">Ent: {metrics.planDistribution.enterprise || 0}</span>
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <span className="bg-emerald-500/15 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-500/20">Pro: {metrics.planDistribution.pro || 0}</span>
+            <span className="bg-primary/15 text-primary px-1.5 py-0.5 rounded border border-primary/20">Starter: {metrics.planDistribution.starter || 0}</span>
+            <span className="bg-indigo-500/15 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-500/20">Ent: {metrics.planDistribution.enterprise || 0}</span>
           </div>
-          <p className="text-xs text-[#777777]">Free / Trial: {metrics.planDistribution.free || 0}</p>
+          <p className="text-xs text-muted-foreground">Free / Trial: {metrics.planDistribution.free || 0}</p>
         </div>
       </div>
 
+      {/* Campaign Leads Captured */}
+      <CampaignLeadsCard />
+
       {/* Empresas Recentes Table Preview */}
-      <div className="rounded-2xl border border-[#DECDBB] bg-white p-5 shadow-warm-xs space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-warm-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-[#2B2B2B]">Empresas Clientes Recentes</h3>
-            <p className="text-xs text-[#666666]">Listagem de organizações ativas na plataforma</p>
+            <h3 className="text-lg font-bold text-foreground">Empresas Clientes Recentes</h3>
+            <p className="text-xs text-muted-foreground">Listagem de organizações ativas na plataforma</p>
           </div>
           <Link href="/super-admin/tenants">
-            <Button variant="outline" size="sm" className="border-[#DECDBB] text-[#E8622C] hover:bg-[#FFF3EE]">
+            <Button variant="outline" size="sm" className="border-border text-primary hover:bg-primary/10 rounded-xl font-bold">
               Ver Todas as Empresas <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
           </Link>
@@ -182,7 +186,7 @@ export default function SuperAdminOverviewPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-[#DECDBB] text-xs font-bold text-[#8A503C] uppercase">
+            <thead className="border-b border-border text-xs font-bold text-muted-foreground uppercase bg-muted/30">
               <tr>
                 <th className="py-3 px-3">Empresa / Documento</th>
                 <th className="py-3 px-3">Admin Responsável</th>
@@ -191,27 +195,27 @@ export default function SuperAdminOverviewPage() {
                 <th className="py-3 px-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F2E8DE]">
+            <tbody className="divide-y divide-border">
               {tenants.slice(0, 5).map((tenant) => (
-                <tr key={tenant.$id} className="hover:bg-[#FAF6F2] transition-colors">
+                <tr key={tenant.$id} className="hover:bg-muted/40 transition-colors">
                   <td className="py-3.5 px-3">
-                    <div className="font-bold text-[#2B2B2B]">{tenant.name}</div>
-                    <div className="text-xs text-[#777777] font-mono">{tenant.document}</div>
+                    <div className="font-bold text-foreground">{tenant.name}</div>
+                    <div className="text-xs text-muted-foreground font-mono">{tenant.document}</div>
                   </td>
                   <td className="py-3.5 px-3">
-                    <div className="font-medium text-[#444444]">{tenant.ownerName || 'Não informado'}</div>
-                    <div className="text-xs text-[#777777]">{tenant.ownerEmail || tenant.email}</div>
+                    <div className="font-medium text-foreground">{tenant.ownerName || 'Não informado'}</div>
+                    <div className="text-xs text-muted-foreground">{tenant.ownerEmail || tenant.email}</div>
                   </td>
                   <td className="py-3.5 px-3">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-[#FFF3EE] text-[#E8622C] border border-[#F0806B]/20">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-primary/15 text-primary border border-primary/20">
                       {tenant.plan || 'Free'}
                     </span>
                   </td>
-                  <td className="py-3.5 px-3 font-semibold text-[#444444]">
+                  <td className="py-3.5 px-3 font-semibold text-foreground">
                     {tenant.maxUsers || 1} colaborador{(tenant.maxUsers || 1) > 1 ? 'es' : ''}
                   </td>
                   <td className="py-3.5 px-3">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EBF6EE] text-[#10B981]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 border border-emerald-500/20">
                       <CheckCircle2 className="h-3 w-3" />
                       Ativa
                     </span>

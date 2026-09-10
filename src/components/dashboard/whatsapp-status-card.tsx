@@ -43,34 +43,41 @@ export function WhatsAppStatusCard() {
 
   return (
     <>
-      <Card className="rounded-2xl border border-neutral-800 bg-[#252423] text-[#FAF6F2] shadow-warm-md overflow-hidden relative">
-        <div className="absolute -right-6 -bottom-6 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl pointer-events-none" />
-
+      <Card className="rounded-2xl border border-border bg-muted text-foreground shadow-warm-xs overflow-hidden relative">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/20 text-[#F0806B] border border-orange-500/30 shrink-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary border border-primary/25 shrink-0">
                 <MessageSquare className="h-6 w-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-base text-white">
+                  <h4 className="font-bold text-base text-foreground">
                     WhatsApp (Motor Embutido)
                   </h4>
                   <Badge
                     variant="outline"
                     className={
                       isConnected
-                        ? 'border-orange-500/40 bg-orange-500/20 text-orange-300 text-[10px]'
-                        : 'border-red-500/40 bg-red-500/20 text-red-300 text-[10px]'
+                        ? 'border-emerald-600/40 bg-emerald-500/15 text-emerald-800 text-xs font-semibold'
+                        : 'border-red-500/40 bg-red-500/15 text-red-800 text-xs font-semibold'
                     }
                   >
-                    <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[#F0806B] animate-pulse' : 'bg-red-400'}`} />
+                    <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-600 animate-pulse' : 'bg-red-500'}`} />
                     {isConnected ? 'Conectado & Ativo' : status === 'connecting' ? 'Aguardando Pareamento' : 'Desconectado'}
                   </Badge>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Instância: <span className="text-white font-mono">{instance.instanceName || 'ServiceZap Main'}</span> {instance.phone ? `(${instance.phone})` : ''}
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {isConnected ? (
+                    <>
+                      <span className="text-foreground font-semibold">Número Conectado:</span>{' '}
+                      <span className="text-foreground font-mono font-bold">{instance.phone ? `+${instance.phone.replace(/[^0-9]/g, '')}` : 'Linha Ativa'}</span>
+                    </>
+                  ) : (
+                    <>
+                      Status: <span className="text-muted-foreground font-medium">WhatsApp Desconectado</span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -80,7 +87,7 @@ export function WhatsAppStatusCard() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 gap-1.5 text-xs bg-neutral-800/80 border-neutral-700 hover:bg-neutral-800 text-neutral-200 rounded-xl"
+                  className="h-8 gap-1.5 text-xs bg-card border-border hover:bg-background text-foreground rounded-xl"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span>Central de Conversas</span>
@@ -93,16 +100,16 @@ export function WhatsAppStatusCard() {
                   size="sm"
                   onClick={loadStatus}
                   disabled={checking}
-                  className="h-8 gap-1.5 text-xs bg-neutral-800/80 border-neutral-700 hover:bg-neutral-800 text-neutral-200 rounded-xl"
+                  className="h-8 gap-1.5 text-xs bg-card border-border hover:bg-background text-foreground rounded-xl"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${checking ? 'animate-spin text-orange-400' : ''}`} />
+                  <RefreshCw className={`h-3.5 w-3.5 ${checking ? 'animate-spin text-primary' : ''}`} />
                   <span>{checking ? 'Verificando...' : 'Verificar'}</span>
                 </Button>
               ) : (
                 <Button
                   size="sm"
                   onClick={() => setPairingOpen(true)}
-                  className="h-8 gap-1.5 text-xs bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-md shadow-orange-500/20"
+                  className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-warm-xs"
                 >
                   <KeyRound className="h-3.5 w-3.5" />
                   <span>Conectar via Código (8 Dígitos)</span>
@@ -111,13 +118,13 @@ export function WhatsAppStatusCard() {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-neutral-800/80 flex items-center justify-between text-xs text-neutral-400">
-            <div className="flex items-center gap-1.5 text-[#F0806B]">
-              <CheckCircle2 className="h-4 w-4" />
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-foreground font-medium">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               <span>Envio automático de PIX & Notificações ativado</span>
             </div>
             <div className="flex items-center gap-1">
-              <Wifi className="h-3.5 w-3.5 text-orange-400" />
+              <Wifi className="h-3.5 w-3.5 text-primary" />
               <span>Latência: 42ms</span>
             </div>
           </div>

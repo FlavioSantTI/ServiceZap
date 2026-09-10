@@ -128,13 +128,17 @@ export default function AuditLogsPage() {
             <span className="flex h-6 items-center px-2 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-[#FFF3EE] text-[#E8622C] border border-[#F0806B]/20">
               Segurança & Governança
             </span>
-            <span className="text-xs text-[#777777]">Visibilidade Completa</span>
+            <span className="text-xs font-bold text-primary flex items-center gap-1">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Segurança &amp; Compliance
+            </span>
+            <span className="text-xs text-muted-foreground">Visibilidade Completa</span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-[#2B2B2B] flex items-center gap-2">
-            <History className="h-6 w-6 text-[#E8622C]" />
+          <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+            <History className="h-6 w-6 text-primary" />
             Trilha de Auditoria de Ações
           </h1>
-          <p className="text-sm text-[#666666]">
+          <p className="text-sm text-muted-foreground">
             Histórico imutável de todas as ações executadas pelos colaboradores da empresa para controle gerencial.
           </p>
         </div>
@@ -145,7 +149,7 @@ export default function AuditLogsPage() {
             size="sm"
             onClick={loadData}
             disabled={loading}
-            className="border-[#DECDBB] text-[#666666] hover:bg-[#FFF3EE]"
+            className="border-border bg-card text-foreground hover:bg-muted"
           >
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
@@ -154,54 +158,54 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 rounded-2xl border border-[#DECDBB] bg-white p-4 shadow-warm-xs">
+      <div className="flex flex-col sm:flex-row gap-3 rounded-2xl border border-border bg-card p-4 shadow-warm-xs">
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#888888]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por colaborador, ação ou detalhes do evento..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#FAF6F2] border-[#DECDBB]"
+            className="pl-9 bg-card border-border text-foreground placeholder:text-muted-foreground"
           />
         </form>
 
         <div className="flex items-center gap-2">
           <Select value={categoryFilter} onValueChange={(val: string | null) => setCategoryFilter(val || 'all')}>
-            <SelectTrigger className="w-[200px] bg-[#FAF6F2] border-[#DECDBB]">
+            <SelectTrigger className="w-[200px] bg-card border-border text-foreground">
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-card border-border text-foreground">
               <SelectItem value="all">Todas as Categorias</SelectItem>
-              <SelectItem value="work_orders">Orçamentos & O.S.</SelectItem>
-              <SelectItem value="invoices">Faturas & Cobranças PIX</SelectItem>
-              <SelectItem value="appointments">Agenda & Atendimentos</SelectItem>
-              <SelectItem value="team">Equipe & Permissões</SelectItem>
+              <SelectItem value="work_orders">Orçamentos &amp; O.S.</SelectItem>
+              <SelectItem value="invoices">Faturas &amp; Cobranças PIX</SelectItem>
+              <SelectItem value="appointments">Agenda &amp; Atendimentos</SelectItem>
+              <SelectItem value="team">Equipe &amp; Permissões</SelectItem>
               <SelectItem value="clients">Clientes CRM</SelectItem>
               <SelectItem value="fiscal">Fiscal / NF-e</SelectItem>
-              <SelectItem value="auth">Segurança & Auth</SelectItem>
+              <SelectItem value="auth">Segurança &amp; Auth</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Timeline List */}
-      <div className="rounded-2xl border border-[#DECDBB] bg-white p-6 shadow-warm-xs space-y-6">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-warm-xs space-y-6">
         {loading ? (
-          <div className="text-center py-12 text-sm text-[#777777]">
+          <div className="text-center py-12 text-sm text-muted-foreground">
             Carregando eventos de auditoria...
           </div>
         ) : logs.length === 0 ? (
-          <div className="text-center py-12 text-sm text-[#777777]">
+          <div className="text-center py-12 text-sm text-muted-foreground">
             Nenhum registro de auditoria encontrado para os critérios selecionados.
           </div>
         ) : (
-          <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-[#EADBCC]">
+          <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-border">
             {logs.map((log) => {
               const conf = categoryConfig[log.category] || {
                 label: log.category,
                 icon: ShieldCheck,
-                color: '#E8622C',
-                bg: '#FFF3EE',
+                color: '#D9502A',
+                bg: '#EDDBC0',
               };
               const Icon = conf.icon;
               const dateFormatted = log.created_at || (log as any).$createdAt
@@ -218,13 +222,13 @@ export default function AuditLogsPage() {
                 <div key={log.$id} className="relative group">
                   {/* Timeline Dot */}
                   <div
-                    className="absolute -left-[31px] top-1 h-6 w-6 rounded-full border-2 border-white flex items-center justify-center shadow-xs transition-transform group-hover:scale-110"
+                    className="absolute -left-[31px] top-1 h-6 w-6 rounded-full border-2 border-card flex items-center justify-center shadow-xs transition-transform group-hover:scale-110"
                     style={{ backgroundColor: conf.color }}
                   >
                     <Icon className="h-3 w-3 text-white" />
                   </div>
 
-                  <div className="rounded-xl border border-[#DECDBB] bg-[#FAF6F2] p-4 space-y-2 hover:border-[#D4BFA9] transition-colors">
+                  <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 hover:border-primary/40 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                       <div className="flex items-center gap-2">
                         <span
@@ -233,27 +237,27 @@ export default function AuditLogsPage() {
                         >
                           {conf.label}
                         </span>
-                        <span className="font-bold text-sm text-[#2B2B2B]">
+                        <span className="font-bold text-sm text-foreground">
                           {log.userName}
                         </span>
-                        <span className="text-xs text-[#777777]">
+                        <span className="text-xs text-muted-foreground">
                           ({log.userRole?.toUpperCase() || 'COLABORADOR'})
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs text-[#888888]">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
                         <span>{dateFormatted}</span>
                       </div>
                     </div>
 
-                    <div className="text-sm font-medium text-[#444444]">
+                    <div className="text-sm font-medium text-foreground">
                       {log.details || log.action}
                     </div>
 
                     {log.entityName && (
-                      <div className="text-xs text-[#777777] flex items-center gap-1 font-mono">
-                        <span className="font-semibold text-[#555555]">Alvo:</span> {log.entityName}
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 font-mono">
+                        <span className="font-semibold text-foreground">Alvo:</span> {log.entityName}
                       </div>
                     )}
                   </div>

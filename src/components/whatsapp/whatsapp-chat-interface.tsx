@@ -816,8 +816,18 @@ export function WhatsAppChatInterface({
                 </Badge>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Sessão: <span className="font-medium text-zinc-700 dark:text-zinc-300 font-mono">{instance.instanceName || 'servicezap_main'}</span>
-                {instance.phone ? ` • Tel: ${instance.phone}` : ''}
+                {isConnected ? (
+                  <>
+                    <span className="text-[#E8622C] font-semibold">Número Conectado:</span>{' '}
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100 font-mono">
+                      {instance.phone ? `+${instance.phone.replace(/[^0-9]/g, '')}` : 'Linha Ativa'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Status: <span className="font-medium text-zinc-700 dark:text-zinc-300">Desconectado (Aguardando pareamento)</span>
+                  </>
+                )}
               </p>
             </div>
           </div>

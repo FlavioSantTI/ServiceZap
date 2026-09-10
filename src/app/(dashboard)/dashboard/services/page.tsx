@@ -103,10 +103,10 @@ export default function ServicesPage() {
     <div className="space-y-6">
       {/* Title Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
           Catálogo de Serviços
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Cadastre, edite e gerencie seus procedimentos e serviços com valores padrão e duração para agendamentos e cobranças rápidas.
         </p>
       </div>

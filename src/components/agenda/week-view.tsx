@@ -101,22 +101,22 @@ export const WeekView: React.FC<WeekViewProps> = ({
   });
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden flex flex-col">
+    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
       {/* Header dos 7 Dias */}
-      <div className="grid grid-cols-8 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-center py-3">
-        <div className="text-xs font-bold text-slate-400 dark:text-slate-500 flex items-center justify-center">
+      <div className="grid grid-cols-8 border-b border-border bg-muted/60 text-center py-3">
+        <div className="text-xs font-bold text-muted-foreground flex items-center justify-center">
           <Clock className="w-3.5 h-3.5" />
         </div>
         {weekDays.map((wd) => (
           <div key={wd.dateStr} className="space-y-0.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
               {wd.name}
             </span>
             <span
               className={`inline-flex items-center justify-center text-xs font-bold w-6 h-6 rounded-full ${
                 wd.isToday
-                  ? "bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white shadow-sm shadow-orange-500/30"
-                  : "text-slate-900 dark:text-slate-100"
+                  ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                  : "text-foreground"
               }`}
             >
               {wd.dayNum}
@@ -126,11 +126,11 @@ export const WeekView: React.FC<WeekViewProps> = ({
       </div>
 
       {/* Grade de Horários */}
-      <div className="divide-y divide-slate-100 dark:divide-slate-800/60 max-h-[600px] overflow-y-auto">
+      <div className="divide-y divide-border max-h-[600px] overflow-y-auto">
         {HOURS.map((hour) => (
           <div key={hour} className="grid grid-cols-8 min-h-[58px] group">
             {/* Coluna de Horário */}
-            <div className="border-r border-slate-200 dark:border-slate-800 p-2 text-[11px] font-mono font-medium text-slate-400 dark:text-slate-500 text-center flex items-start justify-center">
+            <div className="border-r border-border p-2 text-[11px] font-mono font-medium text-muted-foreground text-center flex items-start justify-center">
               {hour}
             </div>
 
@@ -147,7 +147,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
                       onNewAppointmentOnDate(wd.dateStr, hour);
                     }
                   }}
-                  className="border-r border-slate-100 dark:border-slate-800/60 p-1 relative hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                  className="border-r border-border/60 p-1 relative hover:bg-muted/40 transition-colors cursor-pointer"
                 >
                   {hourApts.map((apt) => {
                     const statusConfig =

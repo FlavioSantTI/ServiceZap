@@ -106,13 +106,13 @@ export default function AgendaPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Geral da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
-            <Calendar className="w-7 h-7 text-[#E8622C]" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+            <Calendar className="w-7 h-7 text-primary" />
             <span>Agenda de Atendimento</span>
           </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Gerenciamento interno de horários, visitas técnicas e confirmações de presença via WhatsApp
           </p>
         </div>
@@ -134,8 +134,8 @@ export default function AgendaPage() {
 
       {/* Área de Visualização Principal */}
       {loading ? (
-        <div className="py-24 text-center text-zinc-400 text-xs flex flex-col items-center justify-center space-y-2">
-          <RefreshCw className="w-6 h-6 animate-spin text-[#E8622C]" />
+        <div className="py-24 text-center text-muted-foreground text-xs flex flex-col items-center justify-center space-y-2">
+          <RefreshCw className="w-6 h-6 animate-spin text-primary" />
           <span>Carregando agenda...</span>
         </div>
       ) : (

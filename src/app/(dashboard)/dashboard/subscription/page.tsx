@@ -56,45 +56,45 @@ export default function SubscriptionPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#2B2B2B] via-[#38322E] to-[#2B2B2B] p-6 text-white shadow-warm-md border border-[#443C37]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl bg-card p-6 text-foreground shadow-warm-md border border-border">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 items-center px-2 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-[#E8622C] text-white">
-              Assinatura & Planos
+            <span className="flex h-6 items-center px-2 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-primary text-primary-foreground">
+              Assinatura &amp; Planos
             </span>
-            <span className="text-xs text-[#DECDBB]">Escalabilidade do seu Negócio</span>
+            <span className="text-xs text-muted-foreground">Escalabilidade do seu Negócio</span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Crown className="h-6 w-6 text-[#F0806B]" />
+          <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+            <Crown className="h-6 w-6 text-primary" />
             Planos ServiceZap
           </h1>
-          <p className="text-sm text-[#C8B8A6]">
+          <p className="text-sm text-muted-foreground">
             Escolha o plano ideal para a sua estrutura, libere novos módulos e aumente o limite de colaboradores da sua equipe.
           </p>
         </div>
 
         {/* Current Plan Badge */}
-        <div className="rounded-xl border border-[#5C5046] bg-[#3E342D]/80 p-3.5 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-[#E8622C] flex items-center justify-center text-white font-bold">
+        <div className="rounded-xl border border-border bg-muted/60 p-3.5 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
             <Zap className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-[#DECDBB]">Seu Plano Atual</div>
-            <div className="text-base font-black text-white capitalize">{currentPlanId} Empresa</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Seu Plano Atual</div>
+            <div className="text-base font-black text-foreground capitalize">{currentPlanId} Empresa</div>
           </div>
         </div>
       </div>
 
       {/* Cycle Toggle */}
       <div className="flex flex-col items-center justify-center space-y-2">
-        <div className="inline-flex items-center rounded-xl bg-white p-1 border border-[#DECDBB] shadow-warm-xs">
+        <div className="inline-flex items-center rounded-xl bg-muted p-1 border border-border shadow-warm-xs">
           <button
             onClick={() => setBillingCycle('monthly')}
             className={cn(
               'rounded-lg px-4 py-1.5 text-xs font-bold transition-all',
               billingCycle === 'monthly'
-                ? 'bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white shadow-xs'
-                : 'text-[#555555] hover:text-[#2B2B2B]'
+                ? 'bg-card text-foreground shadow-xs border border-border/50'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             Cobrança Mensal
@@ -104,12 +104,12 @@ export default function SubscriptionPage() {
             className={cn(
               'flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-bold transition-all',
               billingCycle === 'yearly'
-                ? 'bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white shadow-xs'
-                : 'text-[#555555] hover:text-[#2B2B2B]'
+                ? 'bg-card text-foreground shadow-xs border border-border/50'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <span>Cobrança Anual</span>
-            <span className="rounded-full bg-[#10B981] px-2 py-0.5 text-[10px] font-extrabold text-white">
+            <span className="rounded-full bg-primary/20 text-primary px-2 py-0.5 text-[10px] font-extrabold">
               2 Meses Grátis
             </span>
           </button>
@@ -127,42 +127,42 @@ export default function SubscriptionPage() {
             <div
               key={plan.id}
               className={cn(
-                'relative flex flex-col rounded-2xl border bg-white p-6 shadow-warm-xs transition-all duration-300 hover:shadow-warm-md',
+                'relative flex flex-col rounded-2xl border bg-card p-6 shadow-warm-xs transition-all duration-300 hover:shadow-warm-md',
                 isPopular
-                  ? 'border-[#E8622C] ring-2 ring-[#E8622C]/30'
-                  : 'border-[#DECDBB]',
-                isCurrent && 'bg-[#FFFDFB]'
+                  ? 'border-primary ring-2 ring-primary/30'
+                  : 'border-border',
+                isCurrent && 'bg-card/90'
               )}
             >
               {isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#F0806B] to-[#E8622C] px-3 py-0.5 text-[11px] font-black uppercase tracking-wider text-white shadow-warm-xs">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[11px] font-black uppercase tracking-wider text-primary-foreground shadow-warm-xs">
                   Mais Escolhido
                 </div>
               )}
 
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-black text-[#2B2B2B]">{plan.name}</h3>
+                  <h3 className="text-lg font-black text-foreground">{plan.name}</h3>
                   {plan.badge && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#FFF3EE] text-[#E8622C] px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-md">
                       {plan.badge}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#666666] min-h-[36px]">{plan.description}</p>
+                <p className="text-xs text-muted-foreground min-h-[36px]">{plan.description}</p>
               </div>
 
               {/* Price */}
-              <div className="mb-6 pb-6 border-b border-[#F2E8DE]">
+              <div className="mb-6 pb-6 border-b border-border">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xs font-bold text-[#777777]">R$</span>
-                  <span className="text-3xl font-black text-[#2B2B2B]">
+                  <span className="text-xs font-bold text-muted-foreground">R$</span>
+                  <span className="text-3xl font-black text-foreground">
                     {price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <span className="text-xs font-medium text-[#777777]">/mês</span>
+                  <span className="text-xs font-medium text-muted-foreground">/mês</span>
                 </div>
                 {billingCycle === 'yearly' && plan.priceYearly > 0 && (
-                  <div className="text-[11px] text-[#10B981] font-semibold mt-1">
+                  <div className="text-[11px] text-primary font-semibold mt-1">
                     Faturado anualmente R$ {plan.priceYearly.toFixed(2)}
                   </div>
                 )}
@@ -170,12 +170,12 @@ export default function SubscriptionPage() {
 
               {/* Features List */}
               <div className="flex-1 space-y-2.5 mb-6">
-                <div className="text-xs font-bold text-[#8A503C] uppercase tracking-wider mb-2">
+                <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
                   Incluso no Plano:
                 </div>
                 {plan.featureList.map((feat, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-xs text-[#444444]">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[#10B981] mt-0.5" />
+                  <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                     <span>{feat}</span>
                   </div>
                 ))}
@@ -186,7 +186,7 @@ export default function SubscriptionPage() {
                 {isCurrent ? (
                   <Button
                     disabled
-                    className="w-full bg-[#FAF6F2] text-[#888888] border border-[#DECDBB] font-bold text-xs"
+                    className="w-full bg-muted text-muted-foreground border border-border font-bold text-xs"
                   >
                     Plano Ativo
                   </Button>
@@ -196,8 +196,8 @@ export default function SubscriptionPage() {
                     className={cn(
                       'w-full font-bold text-xs transition-all shadow-xs',
                       isPopular
-                        ? 'bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white hover:brightness-105'
-                        : 'bg-white border border-[#DECDBB] text-[#2B2B2B] hover:bg-[#FAF6F2]'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'bg-card border border-border text-foreground hover:bg-muted'
                     )}
                   >
                     {plan.priceMonthly > (SAAS_PLANS[currentPlanId]?.priceMonthly || 0)
@@ -213,23 +213,23 @@ export default function SubscriptionPage() {
 
       {/* Upgrade Checkout Dialog */}
       <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
-        <DialogContent className="max-w-md bg-[#FAF6F2] border-[#DECDBB] text-[#2B2B2B]">
+        <DialogContent className="max-w-md bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold text-[#2B2B2B]">
-              <Sparkles className="h-5 w-5 text-[#E8622C]" />
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
+              <Sparkles className="h-5 w-5 text-primary" />
               Upgrade para o Plano {selectedPlanForUpgrade?.name}
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#666666]">
+            <DialogDescription className="text-xs text-muted-foreground">
               Aprovação instantânea de novos recursos e liberação imediata de limites para sua empresa.
             </DialogDescription>
           </DialogHeader>
 
           {selectedPlanForUpgrade && (
             <div className="space-y-4 py-2">
-              <div className="rounded-xl border border-[#DECDBB] bg-white p-4 space-y-2">
+              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#8A503C] uppercase">Valor do Investimento</span>
-                  <span className="text-xl font-black text-[#2B2B2B]">
+                  <span className="text-xs font-bold text-foreground uppercase">Valor do Investimento</span>
+                  <span className="text-xl font-black text-foreground">
                     R${' '}
                     {(billingCycle === 'yearly'
                       ? selectedPlanForUpgrade.priceYearly
@@ -237,18 +237,18 @@ export default function SubscriptionPage() {
                     ).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
-                <div className="text-xs text-[#777777]">
+                <div className="text-xs text-muted-foreground">
                   Ciclo: {billingCycle === 'yearly' ? 'Anual (2 meses grátis)' : 'Mensal'}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-[#DECDBB] bg-[#FFF3EE] p-4 text-xs text-[#8A503C] space-y-2">
-                <div className="font-bold flex items-center gap-1.5 text-[#E8622C]">
+              <div className="rounded-xl border border-border bg-muted/50 p-4 text-xs text-foreground space-y-2">
+                <div className="font-bold flex items-center gap-1.5 text-primary">
                   <QrCode className="h-4 w-4" /> Pagamento com Liberação Instantânea via PIX / Asaas
                 </div>
-                <p className="text-[#666666]">
+                <p className="text-muted-foreground">
                   Após a confirmação, seu limite de colaboradores será atualizado automaticamente para{' '}
-                  <strong className="text-[#2B2B2B]">{selectedPlanForUpgrade.limits.maxUsers} assentos</strong> e todos os novos módulos serão habilitados.
+                  <strong className="text-foreground">{selectedPlanForUpgrade.limits.maxUsers} assentos</strong> e todos os novos módulos serão habilitados.
                 </p>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function SubscriptionPage() {
               type="button"
               variant="outline"
               onClick={() => setIsUpgradeModalOpen(false)}
-              className="border-[#DECDBB] text-[#555555]"
+              className="border-border text-muted-foreground hover:text-foreground"
             >
               Voltar
             </Button>
@@ -268,7 +268,7 @@ export default function SubscriptionPage() {
                 alert('Solicitação de upgrade registrada com sucesso! Nossa equipe ou gateway gerou o link de pagamento.');
                 setIsUpgradeModalOpen(false);
               }}
-              className="bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white font-bold hover:brightness-105"
+              className="bg-primary text-primary-foreground font-bold hover:bg-primary/90"
             >
               Confirmar Upgrade
             </Button>

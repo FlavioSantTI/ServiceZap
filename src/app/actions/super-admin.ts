@@ -169,6 +169,7 @@ export interface UpdateTenantInput {
   maxUsers: number;
   ownerName: string;
   ownerEmail: string;
+  adminPassword?: string;
   status?: TenantStatus;
 }
 
@@ -208,7 +209,19 @@ export async function updateTenantAction(input: UpdateTenantInput): Promise<{ su
       return { success: true };
     }
 
-    const { databases } = await createAdminClient();
+    const { databases, users } = await createAdminClient();
+
+    // Se uma nova senha for fornecida no formulário de edição, atualiza no Appwrite Auth
+    if (input.adminPassword && input.adminPassword.trim().length >= 6) {
+      try {
+        const userList = await users.list([Query.equal('email', input.ownerEmail)]);
+        if (userList.users.length > 0) {
+          await users.updatePassword(userList.users[0].$id, input.adminPassword.trim());
+        }
+      } catch (pwErr: any) {
+        console.warn('⚠️ Não foi possível redefinir a senha do gestor no Appwrite:', pwErr?.message);
+      }
+    }
     const updated = await databases.updateDocument(
       DATABASE_ID,
       COLLECTION_TENANTS,

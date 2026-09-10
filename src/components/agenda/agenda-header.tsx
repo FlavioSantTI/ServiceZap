@@ -102,91 +102,91 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
     <div className="space-y-4">
       {/* 1. KPIs Topo */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-warm-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-card border border-border shadow-warm-xs flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Hoje</span>
-            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{todayAppointments.length}</p>
+            <span className="text-[11px] font-semibold text-muted-foreground">Hoje</span>
+            <p className="text-xl font-bold text-foreground">{todayAppointments.length}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/20">
+          <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-600 border border-amber-500/20">
             <Clock className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-warm-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-card border border-border shadow-warm-xs flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Confirmados</span>
-            <p className="text-xl font-bold text-[#E8622C]">{confirmedCount}</p>
+            <span className="text-[11px] font-semibold text-muted-foreground">Confirmados</span>
+            <p className="text-xl font-bold text-primary">{confirmedCount}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-orange-500/15 text-[#E8622C] border border-orange-500/20">
+          <div className="p-2.5 rounded-xl bg-primary/15 text-primary border border-primary/20">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-warm-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-card border border-border shadow-warm-xs flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Em Atendimento</span>
-            <p className="text-xl font-bold text-zinc-800 dark:text-zinc-200">{inProgressCount}</p>
+            <span className="text-[11px] font-semibold text-muted-foreground">Em Atendimento</span>
+            <p className="text-xl font-bold text-foreground">{inProgressCount}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border border-zinc-500/20">
+          <div className="p-2.5 rounded-xl bg-muted text-muted-foreground border border-border">
             <PlayCircle className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-warm-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-card border border-border shadow-warm-xs flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Concluídos</span>
-            <p className="text-xl font-bold text-[#E8622C]">{completedCount}</p>
+            <span className="text-[11px] font-semibold text-muted-foreground">Concluídos</span>
+            <p className="text-xl font-bold text-primary">{completedCount}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-orange-500/20 text-[#E8622C] border border-orange-500/30">
+          <div className="p-2.5 rounded-xl bg-primary/20 text-primary border border-primary/30">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
       </div>
 
       {/* 2. Barra Principal de Controles */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-warm-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-card border border-border shadow-warm-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         {/* Navegação de Datas */}
         <div className="flex items-center gap-2 flex-wrap">
           <Button
             size="sm"
             variant="outline"
             onClick={handleToday}
-            className="h-9 px-3 rounded-xl text-xs font-semibold border-zinc-200 dark:border-zinc-800"
+            className="h-9 px-3 rounded-xl text-xs font-semibold border-border bg-card text-foreground hover:bg-muted"
           >
             Hoje
           </Button>
 
-          <div className="flex items-center rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-950/60">
+          <div className="flex items-center rounded-xl border border-border overflow-hidden bg-muted/50">
             <button
               onClick={handlePrev}
               title="Anterior"
-              className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
+              className="p-2 hover:bg-muted text-foreground transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-3 py-1 text-xs font-bold text-zinc-800 dark:text-zinc-200 min-w-[150px] text-center select-none">
+            <span className="px-3 py-1 text-xs font-bold text-foreground min-w-[150px] text-center select-none">
               {periodLabel}
             </span>
             <button
               onClick={handleNext}
               title="Próximo"
-              className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
+              className="p-2 hover:bg-muted text-foreground transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           {/* Alternador de Modo de Visualização */}
-          <div className="flex items-center p-1 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 gap-1 text-xs">
+          <div className="flex items-center p-1 rounded-xl bg-muted border border-border gap-1 text-xs">
             <button
               onClick={() => onViewModeChange("month")}
               className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
                 viewMode === "month"
-                  ? "bg-white dark:bg-zinc-800 text-[#E8622C] shadow-xs font-bold"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  ? "bg-card text-foreground shadow-xs font-bold border border-border/50"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <CalendarIcon className="w-3.5 h-3.5 text-[#E8622C]" />
+              <CalendarIcon className="w-3.5 h-3.5 text-primary" />
               <span>Mês</span>
             </button>
 
@@ -194,11 +194,11 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
               onClick={() => onViewModeChange("week")}
               className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
                 viewMode === "week"
-                  ? "bg-white dark:bg-zinc-800 text-[#E8622C] shadow-xs font-bold"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  ? "bg-card text-foreground shadow-xs font-bold border border-border/50"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Clock className="w-3.5 h-3.5 text-[#E8622C]" />
+              <Clock className="w-3.5 h-3.5 text-primary" />
               <span>Semana</span>
             </button>
 
@@ -206,11 +206,11 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
               onClick={() => onViewModeChange("kanban")}
               className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
                 viewMode === "kanban"
-                  ? "bg-white dark:bg-zinc-800 text-[#E8622C] shadow-xs font-bold"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  ? "bg-card text-foreground shadow-xs font-bold border border-border/50"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-[#E8622C]" />
+              <LayoutGrid className="w-3.5 h-3.5 text-primary" />
               <span>Fluxo Kanban</span>
             </button>
           </div>
@@ -219,19 +219,19 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
         {/* Busca, Filtro e Botão Novo */}
         <div className="flex items-center gap-2.5 w-full lg:w-auto justify-end flex-wrap">
           <div className="relative flex-1 sm:w-56">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
             <Input
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Buscar cliente, serviço..."
-              className="pl-8 h-9 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 focus-visible:ring-[#E8622C]"
+              className="pl-8 h-9 text-xs rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value as AppointmentStatus | "all")}
-            className="h-9 px-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 focus:outline-none"
+            className="h-9 px-3 rounded-xl bg-card border border-border text-xs font-medium text-foreground focus:outline-none"
           >
             <option value="all">Todos os Status</option>
             <option value="scheduled">Agendados</option>
@@ -244,7 +244,7 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
           <Button
             size="sm"
             onClick={onOpenNewAppointment}
-            className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-orange-500/20 gap-1.5 shrink-0"
+            className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs gap-1.5 shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Novo Agendamento</span>

@@ -102,25 +102,25 @@ export function ClientList({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome, documento, e-mail ou WhatsApp..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 text-xs rounded-xl"
+              className="pl-9 h-9 text-xs rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-            <Filter className="h-3.5 w-3.5 text-slate-400 ml-2" />
+          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border border-border text-xs">
+            <Filter className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             {(['all', 'active', 'lead', 'inactive'] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                   statusFilter === st
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm font-bold'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-card text-foreground shadow-sm font-bold border border-border/50'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {st === 'all'
@@ -138,7 +138,7 @@ export function ClientList({
         <Button
           onClick={onNewClient}
           size="sm"
-          className="h-9 gap-2 bg-gradient-to-r from-[#F0806B] to-[#E8622C] hover:opacity-95 text-white font-bold rounded-xl shadow-warm-xs w-full sm:w-auto"
+          className="h-9 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-warm-xs w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Novo Cliente</span>
@@ -146,53 +146,53 @@ export function ClientList({
       </div>
 
       {/* Main Table */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50/80 dark:bg-slate-950/60">
-            <TableRow>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Cliente / Documento</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Contato & WhatsApp</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">LTV (Total Pago)</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Status CRM</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-700 dark:text-slate-300">Ações Rápidas</TableHead>
+          <TableHeader className="bg-muted/60">
+            <TableRow className="border-border">
+              <TableHead className="text-xs font-bold text-foreground">Cliente / Documento</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Contato &amp; WhatsApp</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">LTV (Total Pago)</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Status CRM</TableHead>
+              <TableHead className="text-right text-xs font-bold text-foreground">Ações Rápidas</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredClients.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-xs text-slate-400">
+              <TableRow className="border-border">
+                <TableCell colSpan={5} className="text-center py-8 text-xs text-muted-foreground">
                   Nenhum cliente encontrado.
                 </TableCell>
               </TableRow>
             ) : (
               filteredClients.map((cli) => (
-                <TableRow key={cli.$id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                  <TableCell className="font-medium text-xs text-slate-900 dark:text-slate-100">
+                <TableRow key={cli.$id} className="border-border hover:bg-muted/40 transition-colors">
+                  <TableCell className="font-medium text-xs text-foreground">
                     <div>
-                      <p className="font-bold">{cli.name}</p>
-                      <p className="text-[11px] text-slate-400 font-mono">{cli.document}</p>
+                      <p className="font-bold text-foreground">{cli.name}</p>
+                      <p className="text-[11px] text-muted-foreground font-mono">{cli.document}</p>
                     </div>
                   </TableCell>
 
-                  <TableCell className="text-xs text-slate-600 dark:text-slate-300">
+                  <TableCell className="text-xs text-muted-foreground">
                     <div>
                       <p className="flex items-center gap-1">
-                        <Mail className="h-3 w-3 text-slate-400" />
+                        <Mail className="h-3 w-3 text-muted-foreground" />
                         <span>{cli.email}</span>
                       </p>
-                      <p className="flex items-center gap-1 text-[11px] text-slate-400">
-                        <Phone className="h-3 w-3 text-[#E8622C]" />
+                      <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Phone className="h-3 w-3 text-primary" />
                         <span>{cli.phone}</span>
                       </p>
                     </div>
                   </TableCell>
 
-                  <TableCell className="text-xs font-extrabold text-slate-900 dark:text-slate-100">
+                  <TableCell className="text-xs font-extrabold text-foreground">
                     <div>
-                      <p className="text-[#E8622C] font-extrabold">
+                      <p className="text-primary font-extrabold">
                         R$ {cli.totalPaid?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-normal">
+                      <p className="text-[10px] text-muted-foreground font-normal">
                         {cli.totalInvoices || 0} faturas
                       </p>
                     </div>
@@ -206,7 +206,7 @@ export function ClientList({
                         onClick={() => onQuickCharge(cli)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 gap-1.5 text-xs text-[#E8622C] hover:text-orange-500 hover:bg-orange-500/10 font-semibold"
+                        className="h-8 gap-1.5 text-xs text-primary hover:text-primary hover:bg-muted font-semibold"
                         title="Emitir Cobrança PIX Direta"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -217,7 +217,7 @@ export function ClientList({
                         onClick={() => handleWhatsApp(cli.phone)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-[#E8622C] hover:bg-orange-500/10"
+                        className="h-8 w-8 p-0 text-primary hover:bg-muted"
                         title="Abrir WhatsApp"
                       >
                         <Send className="h-4 w-4" />
@@ -227,7 +227,7 @@ export function ClientList({
                         onClick={() => onViewClientDetails(cli)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
                         title="Ver Histórico CRM 360°"
                       >
                         <Eye className="h-4 w-4" />
@@ -237,7 +237,7 @@ export function ClientList({
                         onClick={() => onEditClient(cli)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
                         title="Editar Cadastro / Alterar Status"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -247,7 +247,7 @@ export function ClientList({
                         onClick={() => onDeleteClient(cli)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                        className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
                         title="Excluir Cliente"
                       >
                         <Trash2 className="h-4 w-4" />

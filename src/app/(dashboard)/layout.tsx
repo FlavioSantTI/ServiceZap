@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[#FAF6F2] dark:bg-[#1C1B1A] font-sans antialiased text-[#2B2B2B] dark:text-[#FAF6F2]">
+    <div className="flex min-h-screen bg-background font-sans antialiased text-foreground">
       {/* Sidebar Navigation */}
       <Sidebar />
 

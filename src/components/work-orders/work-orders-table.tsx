@@ -116,42 +116,46 @@ export function WorkOrdersTable({
     switch (status) {
       case 'quote_sent':
         return (
-          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 gap-1 font-semibold">
-            <FileText className="h-3 w-3" />
+          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 gap-1.5 font-semibold px-2.5 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             <span>Proposta Enviada</span>
           </Badge>
         );
       case 'approved':
         return (
-          <Badge className="bg-orange-500/15 text-[#E8622C] dark:text-[#F0806B] border-orange-500/30 gap-1 font-semibold">
-            <CheckCircle2 className="h-3 w-3" />
+          <Badge className="bg-orange-500/15 text-[#E8622C] dark:text-[#F0806B] border-orange-500/30 gap-1.5 font-semibold px-2.5 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#E8622C]" />
             <span>Aprovada</span>
           </Badge>
         );
       case 'in_execution':
         return (
-          <Badge className="bg-orange-600/15 text-orange-600 dark:text-orange-400 border-orange-600/30 gap-1 font-semibold">
-            <Clock className="h-3 w-3" />
+          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1.5 font-semibold px-2.5 py-1">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+            </span>
             <span>Em Execução</span>
           </Badge>
         );
       case 'completed':
         return (
-          <Badge className="bg-orange-500/20 text-[#E8622C] dark:text-[#F0806B] border-orange-500/40 gap-1 font-semibold">
-            <CheckCircle2 className="h-3 w-3" />
+          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 gap-1.5 font-semibold px-2.5 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             <span>Concluída</span>
           </Badge>
         );
       case 'billed':
         return (
-          <Badge className="bg-neutral-800 text-neutral-200 border-neutral-700 gap-1 font-semibold">
-            <Zap className="h-3 w-3 text-orange-400" />
+          <Badge className="bg-neutral-800 text-neutral-200 border-neutral-700 gap-1.5 font-semibold px-2.5 py-1">
+            <Zap className="h-3 w-3 text-orange-400 fill-orange-400" />
             <span>Faturada / Cobrança</span>
           </Badge>
         );
       case 'rejected':
         return (
-          <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 gap-1 font-semibold">
+          <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 gap-1.5 font-semibold px-2.5 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
             <span>Recusada</span>
           </Badge>
         );
@@ -162,29 +166,29 @@ export function WorkOrdersTable({
 
   return (
     <div className="space-y-4">
-      {/* Table Filters */}
+      {/* Table Filters & Actions */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por código, cliente ou serviço..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-9 text-xs rounded-xl bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800"
+            className="pl-9 h-9 text-xs rounded-xl bg-card border-border text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
-            <Filter className="h-3.5 w-3.5 text-neutral-400 ml-2" />
+          <div className="flex items-center gap-1.5 bg-muted p-1 rounded-xl border border-border text-xs">
+            <Filter className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             {(['all', 'quote', 'work_order'] as const).map((tp) => (
               <button
                 key={tp}
                 onClick={() => setTypeFilter(tp)}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                   typeFilter === tp
-                    ? 'bg-white dark:bg-neutral-800 text-[#E8622C] shadow-sm font-bold'
-                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
+                    ? 'bg-card text-foreground shadow-sm font-bold border border-border/50'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {tp === 'all'
@@ -199,22 +203,22 @@ export function WorkOrdersTable({
       </div>
 
       {/* Main Table */}
-      <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50/80 dark:bg-slate-950/60">
-            <TableRow>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Código / Tipo</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Cliente</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Serviço</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Valor Total</TableHead>
-              <TableHead className="text-xs font-bold text-slate-700 dark:text-slate-300">Status</TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-700 dark:text-slate-300">Ações</TableHead>
+          <TableHeader className="bg-muted/60">
+            <TableRow className="border-border">
+              <TableHead className="text-xs font-bold text-foreground">Código / Tipo</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Cliente</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Serviço</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Valor Total</TableHead>
+              <TableHead className="text-xs font-bold text-foreground">Status</TableHead>
+              <TableHead className="text-right text-xs font-bold text-foreground">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredWorkOrders.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-xs text-slate-400">
+              <TableRow className="border-border">
+                <TableCell colSpan={6} className="text-center py-8 text-xs text-muted-foreground">
                   Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
@@ -226,42 +230,42 @@ export function WorkOrdersTable({
                   <TableRow
                     key={wo.$id}
                     onClick={() => onSelectWorkOrder(wo)}
-                    className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+                    className="border-border hover:bg-muted/40 transition-colors cursor-pointer"
                   >
-                    <TableCell className="font-medium text-xs text-slate-900 dark:text-slate-100">
+                    <TableCell className="font-medium text-xs text-foreground">
                       <div className="flex items-center gap-2">
                         {isQuote ? (
-                          <div className="p-1 rounded-md bg-amber-500/10 text-amber-500">
+                          <div className="p-1 rounded-md bg-amber-500/10 text-amber-600">
                             <FileText className="h-3.5 w-3.5" />
                           </div>
                         ) : (
-                          <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-500">
+                          <div className="p-1 rounded-md bg-primary/10 text-primary">
                             <ClipboardList className="h-3.5 w-3.5" />
                           </div>
                         )}
                         <div>
-                          <p className="font-bold">{wo.number}</p>
-                          <p className="text-[11px] text-slate-400 font-normal">
+                          <p className="font-bold text-foreground">{wo.number}</p>
+                          <p className="text-xs text-muted-foreground font-medium">
                             {isQuote ? 'Orçamento' : 'Ordem de Serviço'}
                           </p>
                         </div>
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                    <TableCell className="text-xs font-semibold text-foreground">
                       <div>
                         <p>{wo.clientName}</p>
                         {wo.clientPhone && (
-                          <p className="text-[11px] text-slate-400 font-normal">{wo.clientPhone}</p>
+                          <p className="text-xs text-muted-foreground font-normal">{wo.clientPhone}</p>
                         )}
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                    <TableCell className="text-xs text-muted-foreground">
                       {wo.serviceName}
                     </TableCell>
 
-                    <TableCell className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                    <TableCell className="text-xs font-bold text-foreground">
                       R$ {wo.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </TableCell>
 
@@ -269,10 +273,10 @@ export function WorkOrdersTable({
 
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="h-8 w-8 p-0 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <DropdownMenuTrigger className="h-8 w-8 p-0 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                           <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="text-xs">
+                        <DropdownMenuContent align="end" className="text-xs bg-card border-border text-foreground">
                           <DropdownMenuItem onClick={() => onSelectWorkOrder(wo)}>
                             <Eye className="mr-2 h-3.5 w-3.5 text-slate-500" />
                             Ver Detalhes
@@ -327,7 +331,7 @@ export function WorkOrdersTable({
                           <DropdownMenuSeparator />
 
                           {/* Alteração direta de status */}
-                          <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <div className="px-2 py-1 text-xs font-bold uppercase tracking-wider text-slate-400">
                             Mudar Status
                           </div>
 

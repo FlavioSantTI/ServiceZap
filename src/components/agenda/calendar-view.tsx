@@ -94,16 +94,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   });
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden flex flex-col">
+    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
       {/* Header com Dias da Semana */}
-      <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-center py-2.5">
+      <div className="grid grid-cols-7 border-b border-border bg-muted/60 text-center py-2.5">
         {WEEK_DAYS.map((day, idx) => (
           <span
             key={day}
             className={`text-xs font-bold uppercase tracking-wider ${
               idx === 0 || idx === 6
-                ? "text-slate-400 dark:text-slate-500"
-                : "text-slate-700 dark:text-slate-300"
+                ? "text-muted-foreground"
+                : "text-foreground"
             }`}
           >
             {day}
@@ -112,7 +112,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Grade de Células de Dias */}
-      <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900">
+      <div className="grid grid-cols-7 divide-x divide-y divide-border bg-card">
         {calendarDays.map((calDay, idx) => {
           const dayAppointments = appointmentsByDate[calDay.dateStr] || [];
 
@@ -121,8 +121,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               key={idx}
               className={`min-h-[110px] sm:min-h-[135px] p-2 flex flex-col justify-between transition-colors group relative ${
                 !calDay.isCurrentMonth
-                  ? "bg-slate-50/50 dark:bg-slate-950/30 text-slate-300 dark:text-slate-600"
-                  : "hover:bg-slate-50/80 dark:hover:bg-slate-800/30 text-slate-700 dark:text-slate-200"
+                  ? "bg-muted/30 text-muted-foreground/50"
+                  : "hover:bg-muted/40 text-foreground"
               }`}
             >
               {/* Header do Dia */}
@@ -130,10 +130,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <span
                   className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${
                     calDay.isToday
-                      ? "bg-gradient-to-r from-[#F0806B] to-[#E8622C] text-white shadow-sm shadow-orange-500/30"
+                      ? "bg-primary text-primary-foreground shadow-xs font-bold"
                       : calDay.isCurrentMonth
-                      ? "text-slate-900 dark:text-slate-100"
-                      : "text-slate-400"
+                      ? "text-foreground"
+                      : "text-muted-foreground/60"
                   }`}
                 >
                   {calDay.dayNumber}
@@ -143,7 +143,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <button
                   onClick={() => onNewAppointmentOnDate(calDay.dateStr)}
                   title={`Agendar em ${calDay.dateStr.split("-").reverse().join("/")}`}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg text-slate-400 hover:text-[#E8622C] hover:bg-orange-500/10"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -171,7 +171,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 {dayAppointments.length > 3 && (
                   <div
                     onClick={() => onSelectAppointment(dayAppointments[3])}
-                    className="text-[10px] font-semibold text-slate-400 hover:text-[#E8622C] px-1 cursor-pointer"
+                    className="text-[10px] font-semibold text-muted-foreground hover:text-primary px-1 cursor-pointer"
                   >
                     + {dayAppointments.length - 3} mais...
                   </div>

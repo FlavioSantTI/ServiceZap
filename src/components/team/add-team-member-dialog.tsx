@@ -183,6 +183,17 @@ export function AddTeamMemberDialog({
               </div>
 
               <div className="space-y-1">
+                <Label className="text-xs font-semibold text-[#444444]">Senha Inicial de Acesso</Label>
+                <Input
+                  type="password"
+                  placeholder="Mudar@2026 (padrão)"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="bg-[#FAF6F2] border-[#DECDBB]"
+                />
+              </div>
+
+              <div className="space-y-1">
                 <Label className="text-xs font-semibold text-[#444444]">Cargo / Perfil</Label>
                 <Select
                   value={formData.role}
