@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, ShieldCheck, MessageCircle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 
 interface FinalCtaSectionProps {
   onApplyClick: () => void;
@@ -10,60 +10,54 @@ interface FinalCtaSectionProps {
 
 export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({ 
   onApplyClick,
-  vagasRestantes = 5
+  vagasRestantes = 3
 }) => {
   return (
-    <section id="chamada-final" className="relative py-16 sm:py-24 bg-gradient-to-b from-[#FAF5ED] to-[#FFF4E5] overflow-hidden">
-      <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 h-[450px] w-[750px] rounded-full bg-gradient-to-t from-[#FFD8A8]/60 via-[#FFE0B2]/40 to-transparent blur-[120px]" />
+    <section id="chamada-final" className="relative py-16 sm:py-24 bg-gradient-to-br from-[#0E969C] via-[#18B5B5] to-[#0E969C] text-white overflow-hidden">
+      
+      {/* Background organic wave graphics */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#39C8C5]/20 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] bg-[#C8F3EF]/20 blur-[90px] rounded-full" />
+      </div>
 
-      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl border-2 border-[#FFB380] bg-gradient-to-br from-white via-[#FFFDF9] to-[#FFF5E6] p-8 sm:p-12 text-center shadow-[0_20px_50px_rgba(255,107,53,0.18)]">
-          {/* Top Pill: Aviso */}
-          <div 
-            id="aviso-encerramento"
-            className="inline-flex items-center gap-2 rounded-full bg-[#FFF0E0] px-4 py-1.5 text-xs sm:text-sm font-bold text-[#C2410C] border border-[#FFB380] mb-6 shadow-xs"
-          >
-            <span className="text-base leading-none">⚠️</span>
-            <span>Aviso: As vagas gratuitas encerram assim que o 5º prestador de serviço conectar.</span>
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center z-10">
+        <div className="rounded-[24px] border border-white/20 bg-white/10 backdrop-blur-md p-8 sm:p-14 shadow-2xl">
+          
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-xs font-extrabold text-white border border-white/30 mb-6 shadow-xs">
+            <Zap className="h-4 w-4 fill-current text-[#C8F3EF]" />
+            <span>ÚLTIMA OPORTUNIDADE DO PROGRAMA PILOTO</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1C1917] tracking-tight leading-tight max-w-3xl mx-auto mb-5 font-['Plus_Jakarta_Sans',sans-serif]">
-            Não deixe seus clientes esperando o próximo orçamento.
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight max-w-3xl mx-auto mb-5 font-['Plus_Jakarta_Sans',sans-serif]">
+            Pronto para experimentar?
           </h2>
 
-          <p className="text-base sm:text-lg text-[#57534E] max-w-2xl mx-auto mb-8 font-normal">
-            Garanta agora 3 meses de ServiceZap gratuito no Plano Básico e coloque seu WhatsApp para atender no piloto automático.
+          <p className="text-base sm:text-lg text-[#C8F3EF] max-w-2xl mx-auto mb-8 font-medium">
+            Inscreva-se em menos de 1 minuto e garanta 3 meses de acesso gratuito ao ServiceZap no Plano Básico.
           </p>
 
-          <div className="inline-flex items-center gap-3 rounded-2xl bg-[#FFF0E0] px-5 py-2.5 border border-[#FFD8A8] mb-8">
-            <span className="flex h-3 w-3 rounded-full bg-[#EA580C] animate-pulse" />
-            <span className="text-xs sm:text-sm font-semibold text-[#1C1917]">
-              Status das Vagas:
-            </span>
-            <span className="text-xs sm:text-sm font-extrabold text-[#C2410C] bg-white px-3 py-1 rounded-lg border border-[#FFB380]/70 shadow-xs">
-              Apenas {vagasRestantes} vagas abertas
+          <div className="inline-flex items-center gap-2 rounded-xl bg-[#FFF7ED] px-4 py-2 border border-[#F59E0B]/50 mb-8 shadow-xs">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-[#F59E0B] animate-pulse" />
+            <span className="text-xs sm:text-sm font-extrabold text-[#06232D]">
+              🔥 Restam apenas {vagasRestantes} vagas no Programa Piloto.
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-4">
             <button
               id="final-cta-btn"
               onClick={onApplyClick}
-              className="group relative inline-flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl bg-gradient-to-r from-[#FF6B35] via-[#F78C6B] to-[#EA580C] px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold text-white shadow-[0_12px_30px_rgba(255,107,53,0.4)] transition-all duration-300 hover:shadow-[0_18px_40px_rgba(255,107,53,0.55)] hover:scale-[1.02] active:scale-[0.99] cursor-pointer"
+              className="group inline-flex items-center justify-center gap-3 rounded-xl bg-white hover:bg-[#C8F3EF] px-9 py-4.5 text-base sm:text-lg font-extrabold text-[#0E969C] shadow-[0_10px_30px_rgba(6,35,45,0.25)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
-              <MessageCircle className="h-5 w-5" />
-              <span>Garantir Minha Vaga Gratuita</span>
-              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
+              <span>Garantir minha vaga gratuita</span>
+              <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
 
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm font-medium text-[#78716C] mt-2">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="h-4 w-4 text-[#EA580C]" /> Sem cartão de crédito
-              </span>
-              <span>•</span>
-              <span>Configuração assistida em minutos</span>
-              <span>•</span>
-              <span className="text-[#C2410C] font-semibold">100% Gratuito por 3 Meses</span>
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#C8F3EF] mt-2">
+              <ShieldCheck className="h-4 w-4 text-white shrink-0" />
+              <span>Sem cartão de crédito • Configuração fácil • Cancelamento livre</span>
             </div>
           </div>
 

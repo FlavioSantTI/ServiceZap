@@ -2,122 +2,119 @@
 
 import React from 'react';
 import { 
+  MessageCircle, 
+  FileText, 
+  QrCode, 
+  Users, 
+  ArrowRight, 
   Zap, 
   ShieldCheck, 
-  QrCode, 
-  CheckCircle2, 
-  Sparkles,
-  ArrowRight
+  CheckCircle2 
 } from 'lucide-react';
 
 interface BenefitsSectionProps {
-  onApplyClick?: () => void;
+  onApplyClick: () => void;
 }
 
 export const BenefitsSection: React.FC<BenefitsSectionProps> = ({ onApplyClick }) => {
   const benefits = [
     {
-      id: 'atendimento-na-hora',
-      icon: Zap,
-      title: 'Atendimento na hora',
-      description: 'O cliente recebe retorno imediato e não fecha com o concorrente.',
-      badge: 'Retenção Imediata',
-      highlightColor: 'from-[#FF6B35] to-[#EA580C]'
+      id: 'atendimento-whatsapp',
+      icon: MessageCircle,
+      title: 'WhatsApp Comercial Nativo',
+      description: 'Transforme seu WhatsApp em um canal de vendas mais eficiente. Organize seus atendimentos, responda orçamentos com agilidade e aproveite melhor suas oportunidades para vender mais.',
+      highlight: 'Sincronização em tempo real'
     },
     {
-      id: 'conexao-estavel',
-      icon: ShieldCheck,
-      title: 'Conexão estável',
-      description: 'O sistema não desconecta sozinho nem te deixa na mão.',
-      badge: 'Zero Quedas',
-      highlightColor: 'from-[#EA580C] to-[#C2410C]'
+      id: 'ordens-servico-pdf',
+      icon: FileText,
+      title: 'Ordens de Serviço & PDF',
+      description: 'Gere propostas e ordens de serviço profissionais com numeração automática e termo de garantia. Envie em PDF com 1 clique.',
+      highlight: 'Termo de Garantia incluso'
     },
     {
-      id: 'facil-de-verdade',
+      id: 'faturamento-pix',
       icon: QrCode,
-      title: 'Fácil de verdade',
-      description: 'Conecte via QR Code em 3 minutos, sem configurações difíceis.',
-      badge: '3 Minutos',
-      highlightColor: 'from-[#D2691E] to-[#B45309]'
+      title: 'Faturas & Cobrança PIX',
+      description: 'Dispare cobranças com QR Code PIX dinâmico e chave Copia e Cola direto no chat do cliente. Receba direto na sua conta.',
+      highlight: 'Sem taxa por intermediação'
+    },
+    {
+      id: 'multi-atendentes-equipes',
+      icon: Users,
+      title: 'Gestão de Equipes & Clientes',
+      description: 'Organize cadastros de clientes, histórico de serviços e permissões para múltiplos colaboradores no mesmo WhatsApp.',
+      highlight: 'Isolamento multi-tenant'
     }
   ];
 
   return (
-    <section 
-      id="por-que-usar" 
-      className="relative py-16 sm:py-20 bg-gradient-to-b from-[#FAF5ED] via-[#FFF9F0] to-[#FAF5ED] border-y border-[#FFE0B2]/80 overflow-hidden"
-    >
-      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[650px] rounded-full bg-[#FFE8D6]/70 blur-[110px]" />
+    <section id="beneficios" className="py-16 sm:py-24 bg-white relative overflow-hidden">
+      
+      {/* Elemento de iluminação suave verde água */}
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#C8F3EF]/20 blur-[100px] rounded-full" />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF0E0] px-3.5 py-1 text-xs font-bold text-[#C2410C] border border-[#FFD8A8] mb-3 shadow-xs">
-            <Sparkles className="h-3.5 w-3.5 text-[#EA580C]" />
-            <span>VANTAGENS REAIS PARA O SEU DIA A DIA</span>
+        {/* Título Centralizado conforme a especificação */}
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#C8F3EF] px-4 py-1.5 text-xs font-bold text-[#0E969C] mb-4">
+            <Zap className="h-3.5 w-3.5 fill-current text-[#18B5B5]" />
+            <span>BENEFÍCIOS EXCLUSIVOS</span>
           </div>
 
-          <h2 
-            id="benefits-main-heading"
-            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1C1917] tracking-tight leading-tight"
-          >
-            Por que usar na sua rotina?
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#06232D] tracking-tight leading-tight">
+            Mais simplicidade para <span className="text-[#18B5B5]">gerenciar seu negócio</span>
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-[#57534E]">
-            Desenvolvido pensando no prestador de serviço que passa o dia na rua e não pode deixar clientes sem resposta.
+
+          <p className="mt-4 text-base sm:text-lg text-[#286A70]">
+            Tudo o que você precisa para organizar seu atendimento e crescer no piloto automático.
           </p>
         </div>
 
-        {/* 3 Benefit Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {benefits.map((benefit) => {
-            const IconComponent = benefit.icon;
+        {/* Grid de 4 Cards (Fundo Branco, Border-radius 16px, Borda #E2F3F2, Hover Elevação) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {benefits.map((item) => {
+            const IconComponent = item.icon;
             return (
               <div
-                key={benefit.id}
-                id={benefit.id}
-                className="group relative rounded-3xl border border-[#FFD8A8]/90 bg-white/95 p-6 sm:p-8 shadow-xs hover:shadow-[0_15px_30px_rgba(255,107,53,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                key={item.id}
+                className="group rounded-2xl bg-white border border-[#E2F3F2] p-6 sm:p-7 flex flex-col justify-between shadow-[0_4px_20px_rgba(6,35,45,0.03)] hover:shadow-[0_12px_30px_rgba(24,181,181,0.12)] hover:-translate-y-1.5 transition-all duration-300"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className={`flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br ${benefit.highlightColor} text-white shadow-[0_4px_12px_rgba(255,107,53,0.25)] group-hover:scale-105 transition-transform`}>
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    <span className="rounded-full bg-[#FFF0E0] px-2.5 py-0.5 text-[11px] font-bold text-[#C2410C] border border-[#FFD8A8]">
-                      {benefit.badge}
-                    </span>
+                  {/* Ícone com Fundo Verde Água Claro #C8F3EF e Ícone #18B5B5 */}
+                  <div className="h-13 w-13 rounded-2xl bg-[#C8F3EF] text-[#18B5B5] flex items-center justify-center mb-5 group-hover:bg-[#18B5B5] group-hover:text-white transition-colors duration-300">
+                    <IconComponent className="h-6 w-6" />
                   </div>
 
-                  <h3 className="text-xl font-bold text-[#1C1917] mb-2 tracking-tight">
-                    {benefit.title}
+                  <h3 className="text-xl font-bold text-[#06232D] mb-2.5 tracking-tight group-hover:text-[#18B5B5] transition-colors">
+                    {item.title}
                   </h3>
 
-                  <p className="text-sm sm:text-base text-[#57534E] leading-relaxed">
-                    {benefit.description}
+                  <p className="text-sm text-[#286A70] leading-relaxed">
+                    {item.description}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-[#F5E6D3] flex items-center gap-2 text-xs font-semibold text-[#EA580C]">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Sem complexidade técnica</span>
+                <div className="mt-6 pt-4 border-t border-[#E2F3F2] flex items-center gap-2 text-xs font-semibold text-[#0E969C]">
+                  <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
+                  <span>{item.highlight}</span>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {onApplyClick && (
-          <div className="mt-12 text-center">
-            <button
-              onClick={onApplyClick}
-              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#C2410C] hover:text-[#9A3412] hover:underline cursor-pointer transition"
-            >
-              <span>Garantir meus 3 meses de acesso gratuito agora</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        )}
+        {/* CTA Intermediário de Conversão */}
+        <div className="mt-14 text-center">
+          <button
+            onClick={onApplyClick}
+            className="inline-flex items-center gap-2.5 rounded-xl bg-[#18B5B5] hover:bg-[#0E969C] px-8 py-4 text-base font-bold text-white shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+          >
+            <span>Quero testar o ServiceZap por 3 meses grátis</span>
+            <ArrowRight className="h-5 w-5" />
+          </button>
+        </div>
 
       </div>
     </section>

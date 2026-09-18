@@ -218,9 +218,9 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
                     Candidatura para as 5 Vagas Gratuitas
                   </h3>
                   
-                  <div className="mt-2 p-3 rounded-2xl bg-[#FFF8EE] border border-[#FFE4C4] text-xs sm:text-sm text-stone-700 leading-relaxed">
-                    <p className="font-semibold text-[#C2410C] flex items-center gap-1.5 mb-1">
-                      <ShieldCheck className="h-4 w-4 shrink-0" />
+                  <div className="mt-2 p-3 rounded-2xl bg-[#C8F3EF]/40 border border-[#39C8C5]/30 text-xs sm:text-sm text-[#06232D] leading-relaxed">
+                    <p className="font-semibold text-[#0E969C] flex items-center gap-1.5 mb-1">
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-[#18B5B5]" />
                       <span>Como funciona a aprovação:</span>
                     </p>
                     <p>
@@ -237,72 +237,72 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
                   <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
                     {/* Campo Nome */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
-                        Seu nome ou nome da sua empresa <span className="text-[#EA580C]">*</span>
+                      <label className="block text-xs font-semibold text-[#06232D] mb-1">
+                        Seu nome ou nome da sua empresa <span className="text-[#18B5B5]">*</span>
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#286A70]" />
                         <input
                           type="text"
                           required
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Ex: Carlos Oliveira (Eletricista) ou SolarTech"
-                          className="w-full rounded-xl border border-stone-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-stone-800 placeholder-stone-400 focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 transition"
+                          className="w-full rounded-xl border border-[#C8F3EF] bg-white py-2.5 pl-10 pr-3.5 text-sm text-[#06232D] placeholder-[#286A70]/60 focus:border-[#18B5B5] focus:outline-none focus:ring-2 focus:ring-[#18B5B5]/20 transition"
                         />
                       </div>
                     </div>
 
                     {/* Campo WhatsApp */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
-                        Seu WhatsApp comercial com DDD <span className="text-[#EA580C]">*</span>
+                      <label className="block text-xs font-semibold text-[#06232D] mb-1">
+                        Seu WhatsApp comercial com DDD <span className="text-[#18B5B5]">*</span>
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#286A70]" />
                         <input
                           type="tel"
                           required
                           value={whatsapp}
                           onChange={(e) => setWhatsapp(e.target.value)}
                           placeholder="Ex: (11) 98765-4321"
-                          className="w-full rounded-xl border border-stone-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-stone-800 placeholder-stone-400 focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 transition"
+                          className="w-full rounded-xl border border-[#C8F3EF] bg-white py-2.5 pl-10 pr-3.5 text-sm text-[#06232D] placeholder-[#286A70]/60 focus:border-[#18B5B5] focus:outline-none focus:ring-2 focus:ring-[#18B5B5]/20 transition"
                         />
                       </div>
-                      <span className="text-[10px] text-stone-500 mt-1 block">
+                      <span className="text-[10px] text-[#286A70] mt-1 block">
                         Usado para te comunicar o resultado da avaliação da sua vaga.
                       </span>
                     </div>
 
                     {/* Campo Tipo de Serviço */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
-                        Qual serviço você presta? <span className="text-[#EA580C]">*</span>
+                      <label className="block text-xs font-semibold text-[#06232D] mb-1">
+                        Qual serviço você presta? <span className="text-[#18B5B5]">*</span>
                       </label>
                       <div className="relative">
-                        <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                        <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#286A70]" />
                         <input
                           type="text"
                           required
                           value={serviceType}
                           onChange={(e) => setServiceType(e.target.value)}
                           placeholder="Ex: Instalação de Ar Condicionado, Padrão de Luz, Reforma..."
-                          className="w-full rounded-xl border border-stone-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-stone-800 placeholder-stone-400 focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 transition"
+                          className="w-full rounded-xl border border-[#C8F3EF] bg-white py-2.5 pl-10 pr-3.5 text-sm text-[#06232D] placeholder-[#286A70]/60 focus:border-[#18B5B5] focus:outline-none focus:ring-2 focus:ring-[#18B5B5]/20 transition"
                         />
                       </div>
                     </div>
 
                     {/* Seletor de Volume Diário */}
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      <label className="block text-xs font-semibold text-[#06232D] mb-1">
                         Volume médio de mensagens recebidas por dia
                       </label>
                       <div className="relative">
-                        <BarChart3 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                        <BarChart3 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#286A70]" />
                         <select
                           value={dailyVolume}
                           onChange={(e) => setDailyVolume(e.target.value)}
-                          className="w-full rounded-xl border border-stone-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-stone-800 focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 transition cursor-pointer"
+                          className="w-full rounded-xl border border-[#C8F3EF] bg-white py-2.5 pl-10 pr-3.5 text-sm text-[#06232D] focus:border-[#18B5B5] focus:outline-none focus:ring-2 focus:ring-[#18B5B5]/20 transition cursor-pointer"
                         >
                           <option value="Menos de 50 mensagens/dia">Menos de 50 mensagens/dia</option>
                           <option value="50 a 200 mensagens/dia">50 a 200 mensagens/dia</option>
@@ -315,7 +315,7 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="mt-5 w-full group relative inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#FF6B35] via-[#F78C6B] to-[#EA580C] px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-white shadow-[0_10px_25px_rgba(255,107,53,0.35)] transition-all duration-200 hover:shadow-[0_14px_30px_rgba(255,107,53,0.45)] hover:scale-[1.01] active:scale-[0.99] cursor-pointer disabled:opacity-75"
+                      className="mt-5 w-full group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#18B5B5] hover:bg-[#0E969C] px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-white shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer disabled:opacity-75"
                     >
                       {isSubmitting ? (
                         <>

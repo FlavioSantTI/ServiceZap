@@ -1,6 +1,6 @@
 # ⚡ ServiceZap — Plataforma SaaS Multi-Tenant de CRM, OS & Automação WhatsApp
 
-![Version](https://img.shields.io/badge/version-1.1.0--beta-purple?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.1.1--RC-teal?style=for-the-badge)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16_App_Router-black?style=for-the-badge&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
@@ -12,7 +12,30 @@
 
 ---
 
-## 🚀 O que há de novo na v1.1.0 Beta (09/09/2026)
+## 🚀 O que há de novo na v1.1.1-RC (Release Candidate)
+
+### 🎨 Nova Landing Page SaaS Modern com Identidade Turquesa
+- **Redesign Visual Completo (`/piloto`, `/campanha`):** Landing Page reformulada com estilo Modern SaaS contemporâneo em tons de turquesa (`#18B5B5`), azul petróleo (`#0E969C`), verde água claro (`#C8F3EF`) e texto `#06232D`.
+- **Navbar em Card Flutuante:** Card branco centralizado (~88% largura, `rounded-[18px]`, `shadow-sm`, logo + links + CTA `"Quero participar"`).
+- **Hero Section em Duas Colunas com Mockup SaaS:**
+  - Badge `⚡ PROGRAMA PILOTO • ACESSO ANTECIPADO`.
+  - Headline com destaque: *"Controle seu negócio e WhatsApp com **mais simplicidade**."*
+  - Bloco de Oferta do Programa Piloto (Scarcity Box `#FFF7ED` com borda âmbar `#F59E0B`): `⚠️ APENAS 5 VAGAS` | `3 meses de acesso gratuito` | `🔥 Restam apenas 3 vagas`.
+  - CTAs `"Garantir meus 3 meses grátis →"` e `"Conhecer a plataforma"`.
+  - Mockup UI interativo do Dashboard ServiceZap em HTML/CSS/SVG com métricas em tempo real, atendimentos e cards flutuantes.
+- **Seção de Benefícios em Grid:** 4 cards brancos (`rounded-2xl`, borda `#E2F3F2`, ícones com fundo `#C8F3EF` e cor `#18B5B5`).
+- **Seção de FAQ em Accordion Interativo:** Respostas claras sobre o funcionamento do Programa Piloto, gratuidade e 5 vagas.
+- **Chamada Final em Turquesa:** Container `#0E969C` com reforço de urgência e botão de inscrição.
+
+### 🧪 Suíte de Testes Automatizados E2E com Playwright
+- **Automação E2E Integrada:** Instalação e configuração do `@playwright/test` em [`playwright.config.ts`](file:///c:/Users/flavi/OneDrive/Desktop/2026/app/ServiceZap/playwright.config.ts).
+- **Suítes de Testes (`e2e/`):**
+  - `e2e/auth.spec.ts`: Testes da página de login, validação de campos e recuperação de senha.
+  - `e2e/navigation.spec.ts`: Proteção de rotas pelo middleware (`/dashboard` e `/super-admin`) e acesso público.
+  - `e2e/campaign.spec.ts`: Testes visuais da Landing Page e abertura do Modal WhatsApp de Leads.
+- **Novos scripts npm:** `npm run test:e2e` e `npm run test:e2e:ui`.
+
+---
 
 ### 🌐 Landing Page & Programa Piloto Beta
 - **Landing Page de Captação Completa** (`/piloto`, `/campanha`): Página de marketing modular com Hero animado, seção "O que é o ServiceZap", Benefícios, Programa Beta de 3 meses grátis e CTA final.
@@ -291,6 +314,15 @@ ServiceZap/
 ---
 
 ## 📋 Changelog
+
+### v1.1.1-RC — 18/09/2026 (Release Candidate)
+- ✅ Nova Landing Page Modern SaaS com paleta turquesa (`#18B5B5`, `#0E969C`, `#C8F3EF`)
+- ✅ Navbar em Card Flutuante com logo, links de ancoragem e CTA
+- ✅ Hero Section em duas colunas com Mockup SaaS real e Scarcity Box (5 Vagas / 3 Meses Grátis)
+- ✅ Seção de Benefícios, FAQ em Accordion Interativo e Chamada Final
+- ✅ Suíte completa de testes automatizados E2E com Playwright (`npm run test:e2e`)
+- ✅ Validação do formulário de candidatura de leads e envio via WhatsApp
+- ✅ Atualização da versão para `1.1.1-RC`
 
 ### v1.1.0 Beta — 09/09/2026
 - ✅ Landing Page completa com 9 componentes modulares (`/piloto`, `/campanha`)

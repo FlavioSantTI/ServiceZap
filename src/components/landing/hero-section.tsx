@@ -5,7 +5,13 @@ import {
   ArrowRight, 
   ShieldCheck, 
   Clock, 
-  MessageCircle 
+  MessageCircle, 
+  CheckCircle2, 
+  TrendingUp, 
+  Zap, 
+  Check, 
+  Sparkles,
+  Play
 } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -15,173 +21,240 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ 
   onApplyClick, 
-  vagasRestantes = 5 
+  vagasRestantes = 3 
 }) => {
-  return (
-    <section id="topo-alerta-vagas" className="relative overflow-hidden pt-8 pb-16 sm:pt-14 sm:pb-24">
-      {/* Warm background subtle ambient glows */}
-      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-[450px] w-[750px] rounded-full bg-gradient-to-br from-[#FFE0B2] via-[#FFD8A8] to-[#FF6B35]/20 blur-[120px] opacity-70" />
-      <div className="pointer-events-none absolute top-1/3 right-[-5%] h-[350px] w-[400px] rounded-full bg-[#FFE8D6] blur-[90px] opacity-80" />
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+  return (
+    <section id="recursos" className="relative overflow-hidden pt-6 pb-16 sm:pt-10 sm:pb-24 min-h-[75vh] flex items-center">
+      
+      {/* Background inspirado na imagem de referência: Gradiente fluido e formas orgânicas teal/turquesa */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
+        {/* Blob Orgânico Grande Superior Direita */}
+        <div className="absolute -top-24 right-[-10%] w-[650px] h-[650px] rounded-full bg-gradient-to-br from-[#39C8C5]/20 via-[#18B5B5]/15 to-[#C8F3EF]/30 blur-[100px]" />
+        
+        {/* Onda/Blob Suave Inferior Esquerda */}
+        <div className="absolute top-1/3 -left-32 w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-[#C8F3EF]/60 via-[#39C8C5]/10 to-transparent blur-[110px]" />
+        
+        {/* Luz Difusa Central */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[450px] bg-[#C8F3EF]/30 blur-[130px] rounded-full" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 z-10 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           
-          {/* Main Copy Column */}
+          {/* Coluna Esquerda: Conteúdo Principal e Oferta */}
           <div className="lg:col-span-7 flex flex-col items-start text-left">
             
-            {/* 1. O QUE É O SERVICEZAP - PRIMEIRA FRASE DE IMPACTO EM EVIDÊNCIA */}
+            {/* 3. Badge de Oferta: ⚡ PROGRAMA PILOTO */}
             <div 
-              id="hero-definition-card"
-              className="w-full mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#FFF0E0] via-[#FFF8EE] to-[#FFF0E0] border-2 border-[#FFB380] shadow-[0_4px_15px_rgba(255,107,53,0.12)]"
+              id="hero-badge"
+              className="inline-flex items-center gap-2 rounded-full bg-[#C8F3EF] border border-[#39C8C5]/40 px-4 py-1.5 text-xs sm:text-sm font-bold text-[#0E969C] shadow-xs mb-5"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-[#EA580C] animate-pulse" />
-                <span className="text-xs font-black uppercase tracking-wider text-[#C2410C]">
-                  O QUE É O SERVICEZAP?
-                </span>
-              </div>
-              <p className="text-sm sm:text-base font-semibold text-[#1C1917] leading-relaxed">
-                O <strong>ServiceZap</strong> é a solução desenvolvida para <strong>prestadores de serviço, assistências técnicas e pequenas empresas</strong> que precisam profissionalizar o contato via WhatsApp. Com ele, você <strong>elimina o caos das mensagens e orçamentos perdidos</strong>, coloca múltiplos atendentes respondendo no mesmo número e cria fluxos automáticos sem complicação.
-              </p>
+              <Zap className="h-4 w-4 fill-current text-[#18B5B5]" />
+              <span className="tracking-wide uppercase text-[11px] sm:text-xs">⚡ PROGRAMA PILOTO</span>
+              <span className="text-[#39C8C5]">•</span>
+              <span className="font-semibold text-[#0E969C]">ACESSO ANTECIPADO</span>
             </div>
 
-            {/* Selo / Destaque: ⚠️ Programa Piloto: Apenas 5 vagas abertas */}
-            <div 
-              id="hero-tagline-badge"
-              className="inline-flex items-center gap-2 rounded-full border border-[#FFB380] bg-gradient-to-r from-[#FFF0E0] to-[#FFE0B2] px-3.5 py-1.5 text-xs sm:text-sm font-bold text-[#C2410C] shadow-[0_2px_10px_rgba(255,107,53,0.15)] mb-4"
-            >
-              <span className="text-base leading-none">⚠️</span>
-              <span className="tracking-tight">Programa Piloto: Apenas {vagasRestantes} vagas abertas (3 Meses Grátis)</span>
-            </div>
-
-            {/* Título */}
+            {/* 4. Headline Grande */}
             <h1 
-              id="hero-main-title"
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-[2.9rem] font-extrabold tracking-tight text-[#1C1917] leading-[1.18] mb-4 font-['Plus_Jakarta_Sans',sans-serif]"
+              id="hero-headline"
+              className="text-3xl sm:text-5xl lg:text-[3.6rem] font-extrabold tracking-tight text-[#06232D] leading-[1.02] mb-5 font-['Plus_Jakarta_Sans',sans-serif]"
             >
-              Pare de perder orçamentos enquanto você está em atendimento.
+              Controle seu negócio e WhatsApp com <span className="text-[#18B5B5] underline decoration-[#C8F3EF] decoration-wavy decoration-2">mais simplicidade</span>.
             </h1>
 
-            {/* Subtítulo */}
+            {/* 5. Subtítulo */}
             <p 
               id="hero-subtitle"
-              className="text-base sm:text-lg text-[#57534E] leading-relaxed max-w-2xl mb-8 font-normal"
+              className="text-base sm:text-lg text-[#286A70] leading-relaxed max-w-2xl mb-6 font-medium"
             >
-              Automatize seu WhatsApp sem quedas e sem complicação técnica. Responda clientes na hora e feche serviços no piloto automático.
+              Faça parte dos primeiros usuários e tenha 3 meses de acesso gratuito. Responda clientes na hora, envie orçamentos e emita Ordens de Serviço sem complicações.
             </p>
 
-            {/* Botão + Microcopy */}
-            <div className="w-full sm:w-auto flex flex-col items-start gap-3">
-              <button
-                id="hero-cta-btn"
-                onClick={onApplyClick}
-                className="group relative inline-flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl bg-gradient-to-r from-[#FF6B35] via-[#F78C6B] to-[#EA580C] px-8 py-4 text-base sm:text-lg font-bold text-white shadow-[0_12px_28px_rgba(255,107,53,0.38)] transition-all duration-300 hover:shadow-[0_16px_36px_rgba(255,107,53,0.5)] hover:scale-[1.02] active:scale-[0.99] cursor-pointer"
-              >
-                <span>Quero 3 Meses Grátis</span>
-                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
-              </button>
+            {/* 6. Bloco Oferta do Programa Piloto (Scarcity Box) */}
+            <div 
+              id="hero-scarcity-box"
+              className="w-full max-w-xl rounded-[14px] bg-[#FFF7ED] border border-[#F59E0B]/40 p-4 mb-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            >
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#F59E0B]">
+                    ⚠️ Apenas 5 vagas
+                  </span>
+                  <span className="text-stone-300">•</span>
+                  <span className="text-xs font-semibold text-[#06232D]">
+                    3 meses de acesso gratuito
+                  </span>
+                </div>
+                <p className="text-xs text-[#286A70]">
+                  Garantia de atendimento prioritário e onboarding assistido.
+                </p>
+              </div>
 
-              <div 
-                id="hero-below-cta-note"
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#78716C]"
-              >
-                <ShieldCheck className="h-4 w-4 text-[#EA580C] shrink-0" />
-                <span>Acesso gratuito no Plano Básico para os 3 primeiros • Sem cartão de crédito</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#F59E0B]/50 shadow-2xs shrink-0">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[#F59E0B] animate-pulse" />
+                <span className="text-xs font-black text-[#06232D]">
+                  🔥 Restam apenas {vagasRestantes} vagas
+                </span>
               </div>
             </div>
 
-            {/* Quick 3 Highlights Badges */}
-            <div className="mt-8 pt-6 border-t border-[#E7D7C1]/80 grid grid-cols-3 gap-3 sm:gap-6 w-full max-w-lg">
-              <div className="rounded-2xl bg-[#FFF9F0] p-3 border border-[#FFE4C4]/70 shadow-xs text-center hover:scale-105 transition-transform">
-                <div className="text-lg sm:text-xl font-extrabold text-[#C2410C]">Na Hora</div>
-                <div className="text-[11px] font-medium text-[#78716C]">Resposta Imediata</div>
-              </div>
-              <div className="rounded-2xl bg-[#FFF9F0] p-3 border border-[#FFE4C4]/70 shadow-xs text-center hover:scale-105 transition-transform">
-                <div className="text-lg sm:text-xl font-extrabold text-[#1C1917]">Estável</div>
-                <div className="text-[11px] font-medium text-[#78716C]">Sem Quedas</div>
-              </div>
-              <div className="rounded-2xl bg-[#FFF9F0] p-3 border border-[#FFE4C4]/70 shadow-xs text-center hover:scale-105 transition-transform">
-                <div className="text-lg sm:text-xl font-extrabold text-[#D97706]">3 Meses</div>
-                <div className="text-[11px] font-medium text-[#78716C]">100% Gratuito</div>
-              </div>
+            {/* 7 & 8. Botões CTAs */}
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mb-4">
+              {/* CTA Principal */}
+              <button
+                id="hero-cta-main"
+                onClick={onApplyClick}
+                className="group inline-flex items-center justify-center gap-3 rounded-xl bg-[#18B5B5] hover:bg-[#0E969C] px-8 h-14 text-base font-bold text-white shadow-[0_6px_20px_rgba(24,181,181,0.3)] transition-all duration-200 hover:shadow-[0_8px_25px_rgba(14,150,156,0.4)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              >
+                <span>Garantir meus 3 meses grátis</span>
+                <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+              </button>
+
+              {/* CTA Secundário */}
+              <button
+                id="hero-cta-secondary"
+                onClick={() => scrollToSection('como-funciona')}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-[#18B5B5] hover:bg-[#C8F3EF]/60 px-6 h-14 text-base font-bold text-[#0E969C] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                <span>Conhecer a plataforma</span>
+              </button>
+            </div>
+
+            {/* Microcopy abaixo dos botões */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#286A70]">
+              <ShieldCheck className="h-4 w-4 text-[#18B5B5] shrink-0" />
+              <span>Após o preenchimento das 5 vagas, o acesso gratuito do Programa Piloto será encerrado.</span>
             </div>
 
           </div>
 
-          {/* Right Column: Visual WhatsApp Live Stability Demonstration Card */}
-          <div className="lg:col-span-5">
-            <div className="relative rounded-3xl border border-[#FFD8A8] bg-[#FFFDF9]/95 shadow-[0_20px_50px_rgba(210,105,30,0.12)] p-5 sm:p-7 backdrop-blur-xl">
-              {/* Decorative top accent gradient bar */}
-              <div className="absolute -top-px left-8 right-8 h-1 bg-gradient-to-r from-[#FF6B35] via-[#F78C6B] to-[#D2691E] rounded-full" />
+          {/* Coluna Direita: Mockup do Produto SaaS (Aparência Real & Premium) */}
+          <div className="lg:col-span-5 relative mt-6 lg:mt-0">
+            
+            {/* Formas orgânicas flutuantes ao redor do Mockup */}
+            <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-[#C8F3EF] opacity-80 blur-xl pointer-events-none" />
+            <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-[#39C8C5]/30 blur-2xl pointer-events-none" />
 
-              {/* Header Status Inside Card */}
-              <div className="flex items-center justify-between border-b border-[#FFE4C4]/80 pb-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#25D366] to-[#16A34A] text-white shadow-sm">
-                    <MessageCircle className="h-5 w-5" />
-                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-[#1C1917] leading-none">
-                      WhatsApp Comercial
-                    </h2>
-                    <p className="text-[11px] text-[#16A34A] font-semibold mt-1 flex items-center gap-1">
-                      <span>●</span> Ativo e respondendo clientes
-                    </p>
-                  </div>
-                </div>
-
-                <span className="rounded-full bg-[#FFE0B2] px-2.5 py-1 text-[11px] font-bold text-[#C2410C]">
-                  QR Code 3 min
-                </span>
+            {/* Card Flutuante Topo Direita: Notificação de Novo Orçamento */}
+            <div className="absolute -top-5 right-2 z-20 hidden sm:flex items-center gap-3 rounded-2xl bg-white border border-[#C8F3EF] p-3 shadow-[0_10px_30px_rgba(6,35,45,0.12)] animate-bounce duration-1000">
+              <div className="h-9 w-9 rounded-xl bg-[#10B981]/15 text-[#10B981] flex items-center justify-center font-bold">
+                <Check className="h-5 w-5" />
               </div>
-
-              {/* Real-life Scenario: Customer asking while contractor is busy */}
-              <div className="space-y-3 font-sans text-xs">
-                <div className="rounded-xl bg-[#FFF8EE] border border-[#FFD8A8]/60 p-2.5 text-[11px] text-[#A16207] flex items-center gap-2">
-                  <Clock className="h-4 w-4 shrink-0 text-[#EA580C]" />
-                  <span>Você está executando um serviço e não pode atender o celular agora:</span>
-                </div>
-
-                {/* Message Incoming */}
-                <div className="flex items-end gap-2 max-w-[85%]">
-                  <div className="rounded-2xl rounded-bl-xs bg-stone-100 p-3 text-[#292524] shadow-xs">
-                    <p className="font-semibold text-[11px] text-stone-600 mb-0.5">Cliente Potencial</p>
-                    <p>Boa tarde! Preciso de um orçamento urgente para instalação. Vocês atendem esta semana?</p>
-                    <span className="block text-[10px] text-stone-400 text-right mt-1">14:32</span>
-                  </div>
-                </div>
-
-                {/* Instant Automatic Response by ServiceZap */}
-                <div className="flex items-end justify-end gap-2 ml-auto max-w-[90%]">
-                  <div className="rounded-2xl rounded-br-xs bg-gradient-to-br from-[#FFF0E0] to-[#FFE8D6] border border-[#FFD8A8] p-3 text-[#1C1917] shadow-xs">
-                    <div className="flex items-center justify-between gap-2 mb-0.5">
-                      <span className="font-bold text-[11px] text-[#C2410C]">ServiceZap (Resposta Imediata)</span>
-                      <span className="text-[10px] font-semibold text-[#16A34A]">0 segundos</span>
-                    </div>
-                    <p className="text-xs leading-relaxed">
-                      Olá! Atendemos sim. Já recebi seu pedido de orçamento. Me informe seu bairro e o tipo de serviço que em instantes enviamos a proposta.
-                    </p>
-                    <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5 pt-1 border-t border-[#FFD8A8]/50">
-                      <span className="text-[#EA580C] font-semibold">⚡ Cliente não foi pro concorrente</span>
-                      <span>14:32 ✓✓</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-left pr-2">
+                <div className="text-xs font-bold text-[#06232D]">Orçamento Aprovado!</div>
+                <div className="text-[11px] font-medium text-[#10B981]">R$ 450,00 via WhatsApp</div>
               </div>
+            </div>
 
-              {/* Scarcity Trigger at bottom of card */}
-              <div className="mt-5 rounded-2xl bg-gradient-to-r from-[#FFF0E0] to-[#FFE8D6] p-3 border border-[#FFD8A8] flex items-center justify-between">
+            {/* Card Flutuante Baixo Esquerda: Cobrança PIX */}
+            <div className="absolute -bottom-5 -left-4 z-20 hidden sm:flex items-center gap-3 rounded-2xl bg-white border border-[#C8F3EF] p-3 shadow-[0_10px_30px_rgba(6,35,45,0.12)]">
+              <div className="h-9 w-9 rounded-xl bg-[#18B5B5]/15 text-[#18B5B5] flex items-center justify-center">
+                <Zap className="h-5 w-5 fill-current" />
+              </div>
+              <div className="text-left pr-2">
+                <div className="text-xs font-bold text-[#06232D]">Fatura PIX Gerada</div>
+                <div className="text-[11px] font-medium text-[#286A70]">Sem intermediários</div>
+              </div>
+            </div>
+
+            {/* Mockup Container Principal */}
+            <div className="relative rounded-[18px] border border-[#C8F3EF] bg-white p-4 sm:p-5 shadow-[0_20px_50px_rgba(14,150,156,0.12)]">
+              
+              {/* Header da Janela SaaS Mockup */}
+              <div className="flex items-center justify-between border-b border-[#E2F3F2] pb-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-2.5 w-2.5 rounded-full bg-[#EA580C] animate-pulse" />
-                  <span className="text-xs font-bold text-[#1C1917]">Vagas do Programa Piloto:</span>
+                  <div className="flex gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-rose-400" />
+                    <span className="h-3 w-3 rounded-full bg-amber-400" />
+                    <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                  </div>
+                  <span className="text-xs font-bold text-[#06232D] ml-2">ServiceZap Dashboard</span>
                 </div>
-                <span className="text-xs font-extrabold text-[#C2410C] bg-white px-2.5 py-0.5 rounded-lg border border-[#FFB380]/60 shadow-xs">
-                  {vagasRestantes} de 3 restantes
-                </span>
+
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#C8F3EF] text-[10px] font-bold text-[#0E969C]">
+                  <span className="h-2 w-2 rounded-full bg-[#10B981] animate-ping" />
+                  <span>WhatsApp Online</span>
+                </div>
+              </div>
+
+              {/* Sidebar + Dashboard Grid inside Mockup */}
+              <div className="grid grid-cols-12 gap-3 text-left">
+                
+                {/* Mini Sidebar */}
+                <div className="col-span-3 bg-[#0E969C] text-white rounded-xl p-2.5 flex flex-col justify-between hidden sm:flex h-[280px]">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Zap className="h-4 w-4 text-[#39C8C5] fill-current" />
+                      <span>SZap</span>
+                    </div>
+                    <div className="space-y-1 text-[11px]">
+                      <div className="p-1.5 rounded-lg bg-white/15 font-bold">● Atendimento</div>
+                      <div className="p-1.5 rounded-lg opacity-80 hover:opacity-100">Ordens de Serv.</div>
+                      <div className="p-1.5 rounded-lg opacity-80 hover:opacity-100">Faturas PIX</div>
+                      <div className="p-1.5 rounded-lg opacity-80 hover:opacity-100">Clientes</div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] opacity-75">v1.1 Piloto</div>
+                </div>
+
+                {/* Main Content inside Mockup */}
+                <div className="col-span-12 sm:col-span-9 space-y-3">
+                  
+                  {/* Metric Cards Top */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 rounded-xl bg-[#C8F3EF]/40 border border-[#C8F3EF]">
+                      <div className="text-[10px] font-bold text-[#286A70] uppercase">Faturamento Mensal</div>
+                      <div className="text-base font-extrabold text-[#06232D] mt-0.5">R$ 14.850,00</div>
+                      <div className="text-[10px] font-bold text-[#10B981] flex items-center gap-0.5 mt-0.5">
+                        <TrendingUp className="h-3 w-3" /> +24% este mês
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-[#FFF7ED] border border-[#F59E0B]/30">
+                      <div className="text-[10px] font-bold text-[#F59E0B] uppercase">O.S. Prontas p/ Cobrar</div>
+                      <div className="text-base font-extrabold text-[#06232D] mt-0.5">8 serviços</div>
+                      <div className="text-[10px] font-semibold text-[#286A70] mt-0.5">Disparo PIX em 1 clique</div>
+                    </div>
+                  </div>
+
+                  {/* Live Chat Mockup Box */}
+                  <div className="rounded-xl border border-[#E2F3F2] bg-slate-50 p-3 space-y-2 text-xs">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-[#06232D] border-b border-slate-200 pb-1.5">
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="h-3.5 w-3.5 text-[#18B5B5]" />
+                        <span>Atendimento WhatsApp Automático</span>
+                      </span>
+                      <span className="text-[10px] font-semibold text-[#10B981]">Resposta: 0s</span>
+                    </div>
+
+                    {/* Customer Message */}
+                    <div className="bg-white p-2 rounded-lg border border-slate-200 max-w-[85%] text-[11px] text-slate-700">
+                      <span className="font-bold text-slate-900 block text-[10px]">Cliente:</span>
+                      Olá! Preciso de orçamento de manutenção técnica para hoje.
+                    </div>
+
+                    {/* Bot Auto-reply */}
+                    <div className="bg-[#C8F3EF]/60 border border-[#39C8C5]/30 p-2 rounded-lg ml-auto max-w-[90%] text-[11px] text-[#06232D]">
+                      <span className="font-bold text-[#0E969C] block text-[10px]">ServiceZap (Bot de Orçamento):</span>
+                      Olá! Recebi seu pedido. Já gerei seu orçamento nº ORC-2026-042 com termo de garantia.
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
 
             </div>
+
           </div>
 
         </div>
