@@ -2,48 +2,33 @@ version: '3.8'
 
 services:
   servicezap:
-    # Imagem do GHCR (GitHub Container Registry)
+    # IMAGEM DO GHCR (GitHub Container Registry)
     image: ghcr.io/flaviosantti/servicezap:latest
-
-    # Variáveis de ambiente da aplicação
-    env_file:
-      - .env.production
-
-    # Mapeamento de volumes persistentes (CRÍTICO: preserva conexões do WhatsApp e mídias)
-    volumes:
-      - servicezap_whatsapp_sessions:/app/.whatsapp_sessions
-      - servicezap_media_storage:/app/.media_storage
 
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-
-      # Labels do Traefik estruturados para Swarm / Docker Compose
+     
+      # Labels estruturadas em formato de dicionário (padrão recomendado para Swarm)
       labels:
         traefik.enable: "true"
         traefik.docker.network: "Favucanet"
-        # Roteador HTTP -> HTTPS (Subdomínio)
+        # Roteador
         traefik.http.routers.servicezap.rule: "Host(`servicezap.flaviosantiago.com.br`)"
         traefik.http.routers.servicezap.entrypoints: "websecure"
         traefik.http.routers.servicezap.tls: "true"
         traefik.http.routers.servicezap.tls.certresolver: "letsencryptresolver"
-        # Vinculação ao serviço e porta interna do container Next.js (3000)
+        # Vinculação explícita do roteador ao serviço interno
         traefik.http.routers.servicezap.service: "servicezap-svc"
+        # Configuração do Serviço e Porta interna do container (Next.js padrão 3000)
         traefik.http.services.servicezap-svc.loadbalancer.server.port: "3000"
 
-    # Conecta à rede externa onde o Traefik está rodando
+    # Conecta à rede externa do Traefik
     networks:
       - Favucanet
 
-# Definição dos volumes nomeados de dados persistentes
-volumes:
-  servicezap_whatsapp_sessions:
-    driver: local
-  servicezap_media_storage:
-    driver: local
-
-# Define a rede externa do Traefik
+# Define a rede externa onde o Traefik está rodando
 networks:
-  Favucanet:
+  Favucanet: 
     external: true
