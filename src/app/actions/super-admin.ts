@@ -489,10 +489,26 @@ export async function fetchSaasPlansAction(): Promise<any[]> {
         try { featureList = JSON.parse(doc.featureListJson); } catch (e) {}
       }
 
+      const parseLimit = (val: any) => {
+        if (val === null || val === undefined || val === 0 || val === -1 || val === '0' || val === 'Infinity') return Infinity;
+        const n = Number(val);
+        return isNaN(n) ? Infinity : n;
+      };
+
+      const normalizedLimits = {
+        maxUsers: parseLimit(limits?.maxUsers),
+        maxAppointmentsPerMonth: parseLimit(limits?.maxAppointmentsPerMonth),
+        maxWorkOrdersPerMonth: parseLimit(limits?.maxWorkOrdersPerMonth),
+        maxClients: parseLimit(limits?.maxClients),
+        maxWhatsAppInstances: Number(limits?.maxWhatsAppInstances) || 1,
+      };
+
       return {
         ...doc,
         id: doc.planId || doc.$id,
-        limits: limits || {},
+        $id: doc.$id,
+        docId: doc.$id,
+        limits: normalizedLimits,
         features: features || {},
         featureList: featureList || [],
       };
@@ -516,22 +532,40 @@ export async function saveSaasPlanAction(planData: any): Promise<{ success: bool
     dynamicPlansStore[planId] = normalizedPlan;
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
-      await logAuditEvent({
-        tenantId: 'super_admin_system',
-        action: 'super_admin.plan_save',
-        category: 'super_admin',
-        entityId: planId,
-        entityName: planData.name,
-        details: `Plano SaaS ${planData.name} salvo/atualizado (R$ ${planData.priceMonthly}/mês).`,
-      });
+      try {
+        await logAuditEvent({
+          tenantId: 'super_admin_system',
+          action: 'super_admin.plan_save',
+          category: 'super_admin',
+          entityId: planId,
+          entityName: planData.name,
+          details: `Plano SaaS ${planData.name} salvo/atualizado (R$ ${planData.priceMonthly}/mês).`,
+        });
+      } catch (e) {}
 
-      revalidatePath('/super-admin');
-      revalidatePath('/super-admin/plans');
-      revalidatePath('/dashboard/subscription');
+      try {
+        revalidatePath('/super-admin');
+        revalidatePath('/super-admin/plans');
+        revalidatePath('/dashboard/subscription');
+      } catch (e) {}
+
       return { success: true, plan: normalizedPlan };
     }
 
     const { databases } = await createAdminClient();
+
+    const sanitizeLimit = (val: any) => {
+      if (val === Infinity || val === 0 || val === null || val === undefined || isNaN(Number(val))) return 0;
+      return Number(val);
+    };
+
+    const cleanLimits = {
+      maxUsers: sanitizeLimit(planData.limits?.maxUsers),
+      maxAppointmentsPerMonth: sanitizeLimit(planData.limits?.maxAppointmentsPerMonth),
+      maxWorkOrdersPerMonth: sanitizeLimit(planData.limits?.maxWorkOrdersPerMonth),
+      maxClients: sanitizeLimit(planData.limits?.maxClients),
+      maxWhatsAppInstances: Number(planData.limits?.maxWhatsAppInstances) || 1,
+    };
 
     const payload = {
       planId: planId,
@@ -541,30 +575,37 @@ export async function saveSaasPlanAction(planData: any): Promise<{ success: bool
       popular: !!planData.popular,
       priceMonthly: Number(planData.priceMonthly) || 0,
       priceYearly: Number(planData.priceYearly) || 0,
-      limitsJson: JSON.stringify(planData.limits || {}),
+      limitsJson: JSON.stringify(cleanLimits),
       featuresJson: JSON.stringify(planData.features || {}),
       featureListJson: JSON.stringify(planData.featureList || []),
     };
 
-    // Tenta atualizar ou criar
+    const targetDocId = planData.$id || planData.docId || planId;
+
+    // Tenta atualizar pelo ID do documento ou criar novo
     try {
-      await databases.updateDocument(DATABASE_ID, COLLECTION_PLANS, planId, payload);
+      await databases.updateDocument(DATABASE_ID, COLLECTION_PLANS, targetDocId, payload);
     } catch (e) {
-      await databases.createDocument(DATABASE_ID, COLLECTION_PLANS, planId, payload);
+      await databases.createDocument(DATABASE_ID, COLLECTION_PLANS, targetDocId, payload);
     }
 
-    await logAuditEvent({
-      tenantId: 'super_admin_system',
-      action: 'super_admin.plan_save',
-      category: 'super_admin',
-      entityId: planId,
-      entityName: planData.name,
-      details: `Plano SaaS ${planData.name} gravado no Appwrite.`,
-    });
+    try {
+      await logAuditEvent({
+        tenantId: 'super_admin_system',
+        action: 'super_admin.plan_save',
+        category: 'super_admin',
+        entityId: planId,
+        entityName: planData.name,
+        details: `Plano SaaS ${planData.name} gravado no Appwrite.`,
+      });
+    } catch (e) {}
 
-    revalidatePath('/super-admin');
-    revalidatePath('/super-admin/plans');
-    revalidatePath('/dashboard/subscription');
+    try {
+      revalidatePath('/super-admin');
+      revalidatePath('/super-admin/plans');
+      revalidatePath('/dashboard/subscription');
+    } catch (e) {}
+
     return { success: true, plan: normalizedPlan };
   } catch (error: any) {
     console.error('❌ Erro ao salvar plano SaaS:', error);
@@ -577,16 +618,22 @@ export async function deleteSaasPlanAction(planId: string): Promise<{ success: b
     delete dynamicPlansStore[planId];
 
     if (!process.env.APPWRITE_API_KEY || !process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID) {
-      revalidatePath('/super-admin/plans');
-      revalidatePath('/dashboard/subscription');
+      try {
+        revalidatePath('/super-admin/plans');
+        revalidatePath('/dashboard/subscription');
+      } catch (e) {}
       return { success: true };
     }
 
     const { databases } = await createAdminClient();
     await databases.deleteDocument(DATABASE_ID, COLLECTION_PLANS, planId);
 
-    revalidatePath('/super-admin/plans');
-    revalidatePath('/dashboard/subscription');
+    try {
+      revalidatePath('/super-admin');
+      revalidatePath('/super-admin/plans');
+      revalidatePath('/dashboard/subscription');
+    } catch (e) {}
+
     return { success: true };
   } catch (error: any) {
     console.error('❌ Erro ao excluir plano:', error);
