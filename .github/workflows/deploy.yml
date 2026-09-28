@@ -44,5 +44,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+            NEXT_PUBLIC_APPWRITE_PROJECT_ID=6a9b45c9002dbf4b28ae
+            NEXT_PUBLIC_APPWRITE_DATABASE_ID=servicezap_db
+            NEXT_PUBLIC_APPWRITE_MESSAGES_COLLECTION_ID=messages
+            NEXT_PUBLIC_APP_URL=https://servicezap.flaviosantiago.com.br
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
