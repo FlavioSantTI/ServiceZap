@@ -1,16 +1,48 @@
-version: '3.8'
+version: "3.8"
 
 services:
   servicezap:
     # IMAGEM DO GHCR (GitHub Container Registry)
     image: ghcr.io/flaviosantti/servicezap:latest
 
+    environment:
+      NODE_ENV: "production"
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      TRUST_PROXY: "1"
+      APP_URL: "https://servicezap.flaviosantiago.com.br"
+      NEXT_PUBLIC_APP_URL: "https://servicezap.flaviosantiago.com.br"
+
+      # Appwrite Cloud / Self-Hosted
+      NEXT_PUBLIC_APPWRITE_ENDPOINT: "${NEXT_PUBLIC_APPWRITE_ENDPOINT:-https://cloud.appwrite.io/v1}"
+      NEXT_PUBLIC_APPWRITE_PROJECT_ID: "${NEXT_PUBLIC_APPWRITE_PROJECT_ID:-6a9b45c9002dbf4b28ae}"
+      APPWRITE_API_KEY: "${APPWRITE_API_KEY}"
+
+      # Banco de Dados & Coleções Appwrite
+      APPWRITE_DATABASE_ID: "${APPWRITE_DATABASE_ID:-servicezap_db}"
+      NEXT_PUBLIC_APPWRITE_DATABASE_ID: "${NEXT_PUBLIC_APPWRITE_DATABASE_ID:-servicezap_db}"
+      APPWRITE_COLLECTION_TENANTS: "tenants"
+      APPWRITE_COLLECTION_SERVICES: "services"
+      APPWRITE_COLLECTION_CLIENTS: "clients"
+      APPWRITE_COLLECTION_INVOICES: "invoices"
+      APPWRITE_COLLECTION_USERS: "users"
+      APPWRITE_COLLECTION_WHATSAPP: "whatsapp_instances"
+      APPWRITE_MESSAGES_COLLECTION_ID: "messages"
+      NEXT_PUBLIC_APPWRITE_MESSAGES_COLLECTION_ID: "messages"
+
+      # Senha do Super Admin Master (Painel /super-admin)
+      SUPERADMIN_PASSWORD: "${SUPERADMIN_PASSWORD:-admin123}"
+
+    volumes:
+      - whatsapp_sessions:/app/.whatsapp_sessions
+      - media_storage:/app/.media_storage
+
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-     
-      # Labels estruturadas em formato de dicionário (padrão recomendado para Swarm)
+
+      # Labels estruturadas em formato de dicionário (padrão recomendado para Swarm / Traefik)
       labels:
         traefik.enable: "true"
         traefik.docker.network: "Favucanet"
@@ -28,7 +60,12 @@ services:
     networks:
       - Favucanet
 
+volumes:
+  whatsapp_sessions:
+  media_storage:
+
 # Define a rede externa onde o Traefik está rodando
 networks:
-  Favucanet: 
+  Favucanet:
     external: true
+
