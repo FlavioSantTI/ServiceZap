@@ -1,5 +1,42 @@
-import { Client, Databases, Account, Users, Storage } from 'node-appwrite';
+import { Client, Databases, Account, Users, Storage, Permission, Role } from 'node-appwrite';
 import { cookies } from 'next/headers';
+
+export const DEFAULT_DOC_PERMISSIONS = [
+  Permission.read(Role.any()),
+  Permission.update(Role.any()),
+  Permission.delete(Role.any()),
+];
+
+function wrapDatabases(databases: Databases): Databases {
+  return new Proxy(databases, {
+    get(target, prop, receiver) {
+      if (prop === 'createDocument') {
+        return (
+          databaseId: string,
+          collectionId: string,
+          documentId: string,
+          data: any,
+          permissions?: string[]
+        ) => {
+          const finalPermissions =
+            permissions && permissions.length > 0 ? permissions : DEFAULT_DOC_PERMISSIONS;
+          return target.createDocument(
+            databaseId,
+            collectionId,
+            documentId,
+            data,
+            finalPermissions
+          );
+        };
+      }
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value === 'function') {
+        return value.bind(target);
+      }
+      return value;
+    },
+  });
+}
 
 export async function createAdminClient() {
   const client = new Client()
@@ -12,7 +49,7 @@ export async function createAdminClient() {
       return new Account(client);
     },
     get databases() {
-      return new Databases(client);
+      return wrapDatabases(new Databases(client));
     },
     get users() {
       return new Users(client);
@@ -40,7 +77,7 @@ export async function createSessionClient() {
       return new Account(client);
     },
     get databases() {
-      return new Databases(client);
+      return wrapDatabases(new Databases(client));
     },
   };
 }

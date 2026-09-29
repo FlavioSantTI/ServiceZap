@@ -5,7 +5,7 @@ import { TenantDocument, TenantStatus, UserDocument, DEFAULT_ADMIN_PERMISSIONS }
 import { mockTenantsList } from '@/lib/mock-data';
 import { logAuditEvent } from '@/lib/services/auditService';
 import { revalidatePath } from 'next/cache';
-import { Query, ID } from 'node-appwrite';
+import { Query, ID, Permission, Role } from 'node-appwrite';
 import { SAAS_PLANS } from '@/lib/constants/plans';
 
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID || 'servicezap_db';
@@ -99,7 +99,12 @@ export async function createTenantAction(input: CreateTenantInput): Promise<{ su
       DATABASE_ID,
       COLLECTION_TENANTS,
       ID.unique(),
-      tenantPayload
+      tenantPayload,
+      [
+        Permission.read(Role.any()),
+        Permission.update(Role.any()),
+        Permission.delete(Role.any()),
+      ]
     );
 
     // 2. Criar Auth User no Appwrite para o Dono/Admin da empresa
@@ -132,7 +137,12 @@ export async function createTenantAction(input: CreateTenantInput): Promise<{ su
           role: 'owner',
           active: true,
           permissionsJson: JSON.stringify(DEFAULT_ADMIN_PERMISSIONS),
-        }
+        },
+        [
+          Permission.read(Role.any()),
+          Permission.update(Role.any()),
+          Permission.delete(Role.any()),
+        ]
       );
     } catch (e) {
       console.warn('⚠️ Falha ao criar registro na tabela users:', e);
@@ -586,7 +596,11 @@ export async function saveSaasPlanAction(planData: any): Promise<{ success: bool
     try {
       await databases.updateDocument(DATABASE_ID, COLLECTION_PLANS, targetDocId, payload);
     } catch (e) {
-      await databases.createDocument(DATABASE_ID, COLLECTION_PLANS, targetDocId, payload);
+      await databases.createDocument(DATABASE_ID, COLLECTION_PLANS, targetDocId, payload, [
+        Permission.read(Role.any()),
+        Permission.update(Role.any()),
+        Permission.delete(Role.any()),
+      ]);
     }
 
     try {
