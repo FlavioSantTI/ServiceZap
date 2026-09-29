@@ -86,11 +86,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#F59E0B]">
-                    ⚠️ Apenas 5 vagas
+                    ⚠️ Programa Piloto (Lote de 5 Vagas)
                   </span>
                   <span className="text-stone-300">•</span>
                   <span className="text-xs font-semibold text-[#06232D]">
-                    3 meses de acesso gratuito
+                    3 meses 100% grátis
                   </span>
                 </div>
                 <p className="text-xs text-[#286A70]">
@@ -101,7 +101,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#F59E0B]/50 shadow-2xs shrink-0">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-[#F59E0B] animate-pulse" />
                 <span className="text-xs font-black text-[#06232D]">
-                  🔥 Restam apenas {vagasRestantes} vagas
+                  🔥 Restam apenas {vagasRestantes} de 5 vagas
                 </span>
               </div>
             </div>
@@ -132,7 +132,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {/* Microcopy abaixo dos botões */}
             <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#286A70]">
               <ShieldCheck className="h-4 w-4 text-[#18B5B5] shrink-0" />
-              <span>Após o preenchimento das 5 vagas, o acesso gratuito do Programa Piloto será encerrado.</span>
+              <span>Assim que as vagas forem preenchidas (restam apenas {vagasRestantes} de 5), o acesso gratuito ao Programa Piloto será encerrado.</span>
             </div>
 
           </div>

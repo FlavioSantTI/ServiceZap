@@ -196,7 +196,7 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#EA580C] opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF6B35]" />
               </span>
-              <span>⚠️ PROGRAMA PILOTO • 5 VAGAS</span>
+              <span>⚠️ PROGRAMA PILOTO • RESTAM 3 DE 5 VAGAS</span>
             </div>
 
             <button
@@ -215,7 +215,7 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
               {!submittedLead ? (
                 <div>
                   <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 tracking-tight leading-snug font-['Plus_Jakarta_Sans',sans-serif]">
-                    Candidatura para as 5 Vagas Gratuitas
+                    Candidatura para o Programa Piloto (Restam 3 Vagas)
                   </h3>
                   
                   <div className="mt-2 p-3 rounded-2xl bg-[#C8F3EF]/40 border border-[#39C8C5]/30 text-xs sm:text-sm text-[#06232D] leading-relaxed">
@@ -224,7 +224,7 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
                       <span>Como funciona a aprovação:</span>
                     </p>
                     <p>
-                      Preencha o formulário abaixo com os dados do seu serviço. Sua candidatura <strong>irá para avaliação</strong> da nossa equipe para liberação de uma das <strong>5 vagas com 3 meses de acesso 100% gratuito</strong> no Plano Básico.
+                      Preencha o formulário abaixo com os dados do seu serviço. Sua candidatura <strong>irá para avaliação</strong> da nossa equipe para liberação de uma das <strong>3 vagas restantes (lote exclusivo de 5 empresas com 3 meses de acesso 100% gratuito</strong> no Plano Básico).
                     </p>
                   </div>
 

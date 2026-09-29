@@ -55,7 +55,7 @@ export const Footer: React.FC<FooterProps> = ({ onApplyClick }) => {
           <div className="md:col-span-3 space-y-3">
             <div className="font-bold text-[#39C8C5] uppercase tracking-wider text-[11px]">Programa Piloto Beta</div>
             <p className="text-xs text-[#C8F3EF]/80">
-              Garanta uma das 5 vagas com 3 meses de acesso 100% gratuito.
+              Garanta uma das 3 vagas restantes do lote exclusivo de 5 empresas (3 meses 100% grátis).
             </p>
             <button
               onClick={onApplyClick}

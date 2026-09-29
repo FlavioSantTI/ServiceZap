@@ -41,7 +41,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({
           <div className="inline-flex items-center gap-2 rounded-xl bg-[#FFF7ED] px-4 py-2 border border-[#F59E0B]/50 mb-8 shadow-xs">
             <span className="flex h-2.5 w-2.5 rounded-full bg-[#F59E0B] animate-pulse" />
             <span className="text-xs sm:text-sm font-extrabold text-[#06232D]">
-              🔥 Restam apenas {vagasRestantes} vagas no Programa Piloto.
+              🔥 Restam apenas {vagasRestantes} de 5 vagas no Programa Piloto.
             </span>
           </div>
 

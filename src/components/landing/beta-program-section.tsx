@@ -18,7 +18,7 @@ export const BetaProgramSection: React.FC<BetaProgramSectionProps> = ({ onApplyC
       stepNumber: '1',
       icon: MousePointerClick,
       title: 'Toque no botão:',
-      description: 'Preencha o formulário rápido para avaliação e garantia de uma das 5 vagas.',
+      description: 'Preencha o formulário rápido para avaliação e garantia de uma das 3 vagas restantes.',
       badge: 'Passo 1',
       detail: 'Análise imediata do seu perfil de atendimento'
     },
