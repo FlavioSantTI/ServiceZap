@@ -84,8 +84,8 @@ export default function LoginPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
             Service<span className="text-primary">Zap</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Plataforma Multi-Tenant de Gestão &amp; WhatsApp Integrado
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground max-w-xs mx-auto leading-relaxed">
+            Seu negócio organizado e seus clientes a um zap de distância.
           </p>
         </div>
 

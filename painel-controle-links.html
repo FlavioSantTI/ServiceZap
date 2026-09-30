@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServiceZap • Central de Acessos & Links do Sistema</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #061820;
+      --card-bg: #0b2531;
+      --card-border: rgba(24, 181, 181, 0.2);
+      --primary: #18B5B5;
+      --primary-hover: #0E969C;
+      --accent: #FF6B35;
+      --accent-glow: rgba(255, 107, 53, 0.25);
+      --text: #F1FBFB;
+      --text-muted: #8FB7BE;
+      --success: #10B981;
+      --badge-bg: rgba(24, 181, 181, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 3rem 1.5rem;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(24, 181, 181, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(255, 107, 53, 0.08) 0%, transparent 40%);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--badge-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 span {
+      color: var(--primary);
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-col: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(24, 181, 181, 0.5);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .card.highlight {
+      border-color: rgba(255, 107, 53, 0.4);
+      background: linear-gradient(180deg, rgba(255, 107, 53, 0.06) 0%, var(--card-bg) 100%);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .badge-super {
+      background: #EF4444;
+      color: #fff;
+    }
+
+    .badge-admin {
+      background: var(--primary);
+      color: #061820;
+    }
+
+    .badge-public {
+      background: #3B82F6;
+      color: #fff;
+    }
+
+    .credentials-box {
+      background: rgba(6, 24, 32, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .cred-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .cred-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .cred-label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .cred-val {
+      font-family: monospace;
+      color: #E2F3F2;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .cred-val:hover {
+      background: rgba(24, 181, 181, 0.25);
+      color: var(--primary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      margin-top: auto;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #061820;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 15px rgba(24, 181, 181, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .quick-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.8rem;
+      background: rgba(6, 24, 32, 0.4);
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .quick-link:hover {
+      color: var(--text);
+      background: rgba(24, 181, 181, 0.15);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--success);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="logo-badge">⚡ ServiceZap Multi-Tenant</div>
+      <h1>Central de <span>Acessos & Links</span></h1>
+      <p class="subtitle">ServiceZap: seu negócio organizado e seus clientes a um zap de distância.</p>
+    </header>
+
+    <div class="grid">
+
+      <!-- CARD 1: SUPER ADMIN MASTER -->
+      <div class="card highlight">
+        <div>
+          <div class="card-header">
+            <h2 class="card-title">👑 Super Admin Master</h2>
+            <span class="badge badge-super">Master</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Acesso irrestrito a todos os Tenants, Planos, Métricas Globais e Auditoria do ServiceZap.
+          </p>
+
+          <div class="credentials-box">
+            <div class="cred-row">
+              <span class="cred-label">Login:</span>
+              <span class="cred-val" onclick="copyCred('flavio.santiago.ti@outlook.com')">flavio.santiago.ti@outlook.com 📋</span>
+            </div>
+            <div class="cred-row">
+              <span class="cred-label">Senha:</span>
+              <span class="cred-val" onclick="copyCred('Favuca#1970')">Favuca#1970 📋</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <a href="https://servicezap.flaviosantiago.com.br/super-admin" target="_blank" class="btn btn-primary">
+            Acessar Painel Super Admin ↗
+          </a>
+          <div class="links-list">
+            <a href="https://servicezap.flaviosantiago.com.br/super-admin/tenants" target="_blank" class="quick-link">
+              <span>Gestão de Empresas (Tenants)</span>
+              <span>→</span>
+            </a>
+            <a href="https://servicezap.flaviosantiago.com.br/super-admin/plans" target="_blank" class="quick-link">
+              <span>Configuração de Planos SaaS</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: ADMIN DO CLIENTE / TENANT -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <h2 class="card-title">🏢 Admin da Empresa</h2>
+            <span class="badge badge-admin">Tenant</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Painel de gestão da empresa: WhatsApp, Atendimentos, Clientes, Faturas e Equipe.
+          </p>
+
+          <div class="credentials-box">
+            <div class="cred-row">
+              <span class="cred-label">Empresa 1 (Alpha):</span>
+              <span class="cred-val" onclick="copyCred('alpha@servicezap.com')">alpha@servicezap.com 📋</span>
+            </div>
+            <div class="cred-row">
+              <span class="cred-label">Empresa 2 (Beta):</span>
+              <span class="cred-val" onclick="copyCred('beta@servicezap.com')">beta@servicezap.com 📋</span>
+            </div>
+            <div class="cred-row">
+              <span class="cred-label">Senha Padrão:</span>
+              <span class="cred-val" onclick="copyCred('ServiceZap@2026')">ServiceZap@2026 📋</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <a href="https://servicezap.flaviosantiago.com.br/login" target="_blank" class="btn btn-secondary">
+            Acessar Login do Sistema ↗
+          </a>
+          <div class="links-list">
+            <a href="https://servicezap.flaviosantiago.com.br/dashboard" target="_blank" class="quick-link">
+              <span>Dashboard Principal</span>
+              <span>→</span>
+            </a>
+            <a href="https://servicezap.flaviosantiago.com.br/dashboard/whatsapp" target="_blank" class="quick-link">
+              <span>Conexão WhatsApp & Mensagens</span>
+              <span>→</span>
+            </a>
+            <a href="https://servicezap.flaviosantiago.com.br/dashboard/invoices" target="_blank" class="quick-link">
+              <span>Faturas & Ordens de Serviço</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: LANDING PAGE & PROGRAMA PILOTO -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <h2 class="card-title">🚀 Landing Page & Piloto</h2>
+            <span class="badge badge-public">Público</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Página de captação de clientes para o Programa Piloto com envio direto para o seu WhatsApp.
+          </p>
+
+          <div class="credentials-box">
+            <div class="cred-row">
+              <span class="cred-label">WhatsApp Destino:</span>
+              <span class="cred-val" onclick="copyCred('5563984913860')">55 63 98491-3860 📋</span>
+            </div>
+            <div class="cred-row">
+              <span class="cred-label">Oferta:</span>
+              <span style="font-size: 0.8rem; color: var(--primary);">3 Meses 100% Grátis</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <a href="https://servicezap.flaviosantiago.com.br" target="_blank" class="btn btn-secondary">
+            Abrir Landing Page Oficial ↗
+          </a>
+          <div class="links-list">
+            <a href="https://servicezap.flaviosantiago.com.br/campanha" target="_blank" class="quick-link">
+              <span>Página de Campanha (/campanha)</span>
+              <span>→</span>
+            </a>
+            <a href="https://servicezap.flaviosantiago.com.br/piloto" target="_blank" class="quick-link">
+              <span>Página Piloto Beta (/piloto)</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer>
+      ServiceZap Multi-Tenant • Desenvolvido para Alta Performance • 2026
+    </footer>
+  </div>
+
+  <div id="toast" class="toast">Texto copiado para a área de transferência!</div>
+
+  <script>
+    function copyCred(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toast');
+        toast.innerText = `Copiado: "${text}"`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2200);
+      });
+    }
+  </script>
+</body>
+</html>
