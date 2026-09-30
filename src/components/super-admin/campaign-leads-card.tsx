@@ -50,7 +50,7 @@ export function CampaignLeadsCard() {
 
 Recebemos sua candidatura para o Programa Piloto no seu serviço de ${lead.service_type}.
 
-Seu perfil foi PRÉ-APROVADO para uma das 5 vagas com 3 meses de acesso 100% gratuito no Plano Básico!
+Seu perfil foi PRÉ-APROVADO para uma das vagas com 3 meses de acesso 100% gratuito no Plano Básico!
 
 Podemos liberar seu acesso hoje para você começar a responder orçamentos no piloto automático?`;
 

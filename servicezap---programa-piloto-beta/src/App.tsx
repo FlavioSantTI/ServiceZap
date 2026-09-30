@@ -40,7 +40,7 @@ export default function App() {
       <WhatsAppModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        defaultPhone="5511999999999"
+        defaultPhone="5563984913860"
       />
 
       {/* Floating Mobile Quick Contact Pill */}

@@ -31,11 +31,15 @@ interface WhatsAppModalProps {
 export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   isOpen,
   onClose,
-  defaultPhone = '5511999999999'
+  defaultPhone = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '5563984913860'
 }) => {
   const [phoneNumber, setPhoneNumber] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('servicezap_dest_phone') || defaultPhone;
+      const saved = localStorage.getItem('servicezap_dest_phone');
+      if (saved && saved !== '5511999999999' && saved !== '551199999999' && saved.length >= 10) {
+        return saved;
+      }
+      return defaultPhone;
     }
     return defaultPhone;
   });
@@ -138,9 +142,9 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
 🔧 Serviço: ${lead.service_type}
 📊 Volume: ${lead.daily_volume}
 
-Gostaria de solicitar a avaliação do meu perfil para liberação de uma das 5 vagas gratuitas por 3 meses no Plano Básico!`;
+Gostaria de solicitar a avaliação do meu perfil para liberação de uma das 3 vagas gratuitas restantes por 3 meses no Plano Básico!`;
 
-    const dest = phoneNumber.replace(/\D/g, '') || defaultPhone;
+    const dest = (phoneNumber || defaultPhone).replace(/\D/g, '') || '5563984913860';
     return `https://wa.me/${dest}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -150,7 +154,7 @@ Gostaria de solicitar a avaliação do meu perfil para liberação de uma das 5 
 
 Recebemos seu formulário de candidatura para o Programa Piloto no seu serviço de ${lead.service_type}.
 
-Seu perfil foi PRÉ-APROVADO para uma das 5 vagas com 3 meses de acesso 100% gratuito no Plano Básico!
+Seu perfil foi PRÉ-APROVADO para uma das vagas restantes com 3 meses de acesso 100% gratuito no Plano Básico!
 
 Queremos te ajudar a nunca mais perder um orçamento por demorar a responder clientes enquanto está atendendo. Podemos liberar seu acesso hoje?`;
 
@@ -466,7 +470,7 @@ Queremos te ajudar a nunca mais perder um orçamento por demorar a responder cli
                   type="text"
                   value={phoneNumber}
                   onChange={(e) => handleSavePhone(e.target.value)}
-                  placeholder="Ex: 5511999999999"
+                  placeholder="Ex: 5563984913860"
                   className="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-800"
                 />
               </div>

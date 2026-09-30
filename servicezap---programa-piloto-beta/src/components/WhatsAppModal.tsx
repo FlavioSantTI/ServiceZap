@@ -31,7 +31,7 @@ interface WhatsAppModalProps {
 export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   isOpen,
   onClose,
-  defaultPhone = '5511999999999'
+  defaultPhone = '5563984913860'
 }) => {
   const [phoneNumber, setPhoneNumber] = useState(() => {
     return localStorage.getItem('servicezap_dest_phone') || defaultPhone;

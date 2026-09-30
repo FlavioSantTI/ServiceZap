@@ -227,7 +227,7 @@ export const ApplicationFormSection: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                  href={`https://wa.me/5511999999999?text=${encodeURIComponent(`Olá, submeti a candidatura da empresa ${formData.companyAndSector} para o Programa Beta do ServiceZap (Inscrição: ${applicationId}). Gostaria de confirmar o recebimento.`)}`}
+                  href={`https://wa.me/5563984913860?text=${encodeURIComponent(`Olá, submeti a candidatura da empresa ${formData.companyAndSector} para o Programa Beta do ServiceZap (Inscrição: ${applicationId}). Gostaria de confirmar o recebimento.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B35] to-[#EA580C] px-7 py-3.5 text-sm font-bold text-white shadow-[0_6px_20px_rgba(255,107,53,0.3)] hover:scale-[1.02] transition"

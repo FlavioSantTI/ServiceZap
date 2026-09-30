@@ -58,7 +58,7 @@ export function LandingPageView({ isLoggedIn = false }: LandingPageViewProps) {
       <WhatsAppModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        defaultPhone="5511999999999"
+        defaultPhone={process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "5563984913860"}
       />
 
       {/* Floating Mobile Pill */}
